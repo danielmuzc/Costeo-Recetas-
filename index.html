@@ -124,6 +124,16 @@ td.acciones { text-align: right; white-space: nowrap; }
 .form-linea input[name="cantidadUtilizada"] { width: 110px; }
 .form-linea-receta select.selector-tipo { width: 130px; }
 
+/* TABLA EDITABLE (líneas de subreceta: cantidad, medida y rendimiento en línea) */
+.tabla-editable td { vertical-align: middle; }
+.input-mini { width: 100%; min-width: 68px; padding: 6px 8px; border: 1px solid var(--borde); border-radius: 6px; font-size: .84rem; font-family: 'Inter', sans-serif; background: #fff; }
+.input-mini:focus { outline: 2px solid var(--dorado); outline-offset: 1px; }
+.celda-medida select.input-mini { min-width: 130px; }
+.celda-tasa { white-space: nowrap; }
+.celda-tasa .input-mini { width: 58px; display: inline-block; }
+.agregar-linea-sub { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.agregar-linea-sub select { flex: 1; min-width: 220px; padding: 9px 11px; border: 1px solid var(--borde); border-radius: 8px; font-size: .85rem; }
+
 /* KPI / RESUMEN */
 .grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 14px; margin-bottom: 24px; }
 .tarjeta-kpi { background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; }
@@ -257,7 +267,7 @@ td.acciones { text-align: right; white-space: nowrap; }
 // =============================================================================
 // CONFIGURA AQUÍ LA CONEXIÓN A TU HOJA DE CÁLCULO (API publicada de Code.gs)
 // =============================================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbwvBi30Zp0wbJTO5jQFv6A-Qvk1PidIrtSfy8HRVC_uI51tO4No5ZWuJaO2fP8oiqa5GA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwFdFESZEjFdHaB2H6axo_DcvPorHiU35KQx4yq7Fy-fxLG2SGW-9YPmw7lnAxez1M2/exec';
 
 const state = {
   data: null,
@@ -374,8 +384,31 @@ function unidadIngrediente(id) {
 function lineasSubreceta(idSub) {
   return state.data.subrecetasDetalle.filter(d => d.IDSubreceta === idSub);
 }
+// Convierte una cantidad + unidad de medida elegida en la línea a la unidad base del ingrediente (g o ml)
+function convertirABase(cantidad, unidadMedida) {
+  switch (unidadMedida) {
+    case 'Kilogramo (kg)': return cantidad * 1000;
+    case 'Litro (l)': return cantidad * 1000;
+    default: return cantidad; // Gramo (g), Mililitro (ml), Unidad
+  }
+}
+// Unidades de medida válidas según el tipo de ingrediente (no tiene sentido ofrecer litros para algo sólido)
+function opcionesUnidadMedida(unidadBase) {
+  if (unidadBase === 'g') return ['Gramo (g)', 'Kilogramo (kg)'];
+  if (unidadBase === 'ml') return ['Mililitro (ml)', 'Litro (l)'];
+  return ['Unidad'];
+}
+// Costo real de una línea: convierte a la unidad base y ajusta por la tasa de rendimiento
+// (si el rendimiento es 90%, se necesita más cantidad "como se compra" para obtener la cantidad usable).
+function costoLineaSubreceta(d) {
+  const cantidadBase = convertirABase(Number(d.CantidadUtilizada) || 0, d.UnidadMedida);
+  const tasa = Number(d.TasaRendimiento);
+  const factor = tasa > 0 ? tasa / 100 : 1;
+  const cantidadEfectiva = cantidadBase / factor;
+  return cantidadEfectiva * costoIngredientePorId(d.IDIngrediente);
+}
 function costoTotalSubreceta(idSub) {
-  return lineasSubreceta(idSub).reduce((sum, d) => sum + (Number(d.CantidadUtilizada) || 0) * costoIngredientePorId(d.IDIngrediente), 0);
+  return lineasSubreceta(idSub).reduce((sum, d) => sum + costoLineaSubreceta(d), 0);
 }
 function costoPorUnidadSubreceta(idSub) {
   const sub = state.data.subrecetas.find(s => s.ID === idSub);
@@ -671,27 +704,37 @@ function detalleSubreceta(s, lineas) {
   const ingredientesDisponibles = [...state.data.ingredientes].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
   return `
     <div class="tarjeta-item-cuerpo">
-      ${lineas.length ? `<table class="tabla-mini">
-        <thead><tr><th>Ingrediente</th><th class="num">Cantidad</th><th class="num">Costo unitario</th><th class="num">Costo línea</th><th></th></tr></thead>
+      ${lineas.length ? `<table class="tabla-mini tabla-editable">
+        <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Medida</th><th>Rendimiento</th><th class="num">Costo</th><th></th></tr></thead>
         <tbody>
-          ${lineas.map(l => `<tr>
-              <td>${escapeHTML(nombreIngrediente(l.IDIngrediente))}</td>
-              <td class="num">${l.CantidadUtilizada} ${unidadIngrediente(l.IDIngrediente)}</td>
-              <td class="num">${moneyFino(costoIngredientePorId(l.IDIngrediente))}</td>
-              <td class="num">${moneyFino((Number(l.CantidadUtilizada) || 0) * costoIngredientePorId(l.IDIngrediente))}</td>
-              <td class="acciones"><button class="icon-btn" data-accion="eliminarLineaSub" data-id="${l.ID}" data-sub="${s.ID}" title="Quitar">🗑</button></td>
-            </tr>`).join('')}
+          ${lineas.map(l => filaEditableSubreceta(s, l)).join('')}
         </tbody>
       </table>` : `<p class="muted">Todavía no agregas ingredientes a esta subreceta.</p>`}
-      <form class="form-linea" data-form-linea-sub="${s.ID}">
-        <select name="idIngrediente" required>
-          <option value="">Ingrediente…</option>
+      <div class="agregar-linea-sub" data-form-add-sub="${s.ID}">
+        <select class="selector-agregar-ing">
+          <option value="">Selecciona un ingrediente…</option>
           ${ingredientesDisponibles.map(i => `<option value="${i.ID}">${escapeHTML(i.Nombre)} — ${moneyFino(i.CostoPorUnidadBase)}/${i.UnidadBase}</option>`).join('')}
         </select>
-        <input type="number" step="any" min="0" name="cantidadUtilizada" placeholder="Cantidad" required>
-        <button type="submit" class="btn btn-chico">+ Agregar</button>
-      </form>
+        <button type="button" class="btn btn-chico" data-accion="agregarLineaSub" data-sub="${s.ID}">+ Agregar ingrediente</button>
+      </div>
+      <p class="nota-pie">Rendimiento 100% = sin merma. Si el ingrediente pierde peso o volumen al prepararlo (pelado, cocción, limpieza…), baja el porcentaje y el costo se ajusta solo para reflejar lo que de verdad cuesta.</p>
     </div>
+  `;
+}
+
+function filaEditableSubreceta(s, l) {
+  const ing = state.data.ingredientes.find(i => i.ID === l.IDIngrediente);
+  const unidadBase = ing ? ing.UnidadBase : 'g';
+  const opciones = opcionesUnidadMedida(unidadBase);
+  return `
+    <tr data-linea-sub="${l.ID}" data-sub="${s.ID}">
+      <td>${escapeHTML(nombreIngrediente(l.IDIngrediente))}<div class="chip-id">${l.IDIngrediente}</div></td>
+      <td><input type="number" step="any" min="0" class="input-mini" data-campo="cantidadUtilizada" value="${l.CantidadUtilizada}"></td>
+      <td class="celda-medida"><select class="input-mini" data-campo="unidadMedida">${opciones.map(u => `<option value="${u}" ${l.UnidadMedida === u ? 'selected' : ''}>${u}</option>`).join('')}</select></td>
+      <td class="celda-tasa"><input type="number" step="any" min="1" max="100" class="input-mini" data-campo="tasaRendimiento" value="${l.TasaRendimiento || 100}"> %</td>
+      <td class="num">${moneyFino(costoLineaSubreceta(l))}</td>
+      <td class="acciones"><button class="icon-btn" data-accion="eliminarLineaSub" data-id="${l.ID}" data-sub="${s.ID}" title="Quitar">🗑</button></td>
+    </tr>
   `;
 }
 
@@ -708,16 +751,36 @@ function wireSubrecetas() {
   document.querySelectorAll('[data-accion="editarSub"]').forEach(b => b.addEventListener('click', () => abrirFormSubreceta(b.dataset.id)));
   document.querySelectorAll('[data-accion="eliminarSub"]').forEach(b => b.addEventListener('click', () => eliminarSubreceta(b.dataset.id)));
   document.querySelectorAll('[data-accion="eliminarLineaSub"]').forEach(b => b.addEventListener('click', () => eliminarLineaSubreceta(b.dataset.id, b.dataset.sub)));
-  document.querySelectorAll('[data-form-linea-sub]').forEach(form => {
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const idSubreceta = form.dataset.formLineaSub;
-      const fd = new FormData(form);
+  document.querySelectorAll('[data-accion="agregarLineaSub"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idSubreceta = btn.dataset.sub;
+      const select = btn.closest('[data-form-add-sub]').querySelector('.selector-agregar-ing');
+      const idIngrediente = select.value;
+      if (!idIngrediente) { mostrarToast('Selecciona un ingrediente primero.', 'error'); return; }
+      const ing = state.data.ingredientes.find(i => i.ID === idIngrediente);
+      const unidadMedida = ing.UnidadBase === 'g' ? 'Gramo (g)' : ing.UnidadBase === 'ml' ? 'Mililitro (ml)' : 'Unidad';
       try {
-        await apiPost('addDetalleSubreceta', { idSubreceta, idIngrediente: fd.get('idIngrediente'), cantidadUtilizada: fd.get('cantidadUtilizada') });
-        mostrarToast('Ingrediente agregado a la subreceta.', 'ok');
+        await apiPost('addDetalleSubreceta', { idSubreceta, idIngrediente, cantidadUtilizada: 0, unidadMedida, tasaRendimiento: 100 });
+        mostrarToast('Ingrediente agregado. Ajusta cantidad, medida y rendimiento.', 'ok');
         renderVista();
       } catch (err) { mostrarToast(err.message, 'error'); }
+    });
+  });
+  document.querySelectorAll('[data-linea-sub]').forEach(tr => {
+    tr.querySelectorAll('[data-campo]').forEach(campo => {
+      campo.addEventListener('change', async () => {
+        const idLinea = tr.dataset.lineaSub;
+        const idSubreceta = tr.dataset.sub;
+        const lineaActual = state.data.subrecetasDetalle.find(d => d.ID === idLinea);
+        const idIngrediente = lineaActual ? lineaActual.IDIngrediente : '';
+        const cantidadUtilizada = tr.querySelector('[data-campo="cantidadUtilizada"]').value;
+        const unidadMedida = tr.querySelector('[data-campo="unidadMedida"]').value;
+        const tasaRendimiento = tr.querySelector('[data-campo="tasaRendimiento"]').value;
+        try {
+          await apiPost('updateDetalleSubreceta', { id: idLinea, idSubreceta, idIngrediente, cantidadUtilizada, unidadMedida, tasaRendimiento });
+          renderVista();
+        } catch (err) { mostrarToast(err.message, 'error'); }
+      });
     });
   });
 }
