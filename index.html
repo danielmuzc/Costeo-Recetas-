@@ -68,6 +68,17 @@ nav button{padding:9px 6px;font-size:.72rem;text-align:center;flex:1}
 main{margin:0;padding:20px 14px 90px}
 .g2{grid-template-columns:1fr}.ir{grid-template-columns:60px 80px 1fr 30px}
 iframe{height:calc(100vh - 100px)}}
+.sb{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.sb button{border:1px solid var(--b);background:#fff;border-radius:99px;padding:6px 14px;font:500 .83rem Inter,sans-serif;cursor:pointer;color:var(--ts)}
+.sb button.on{background:var(--v);color:#fff;border-color:var(--v)}
+.ac{background:#fff;border:1px solid var(--b);border-radius:12px;margin-bottom:10px}
+.ac .ah{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;flex-wrap:wrap}
+.ac .ab{padding:0 18px 16px;border-top:1px solid var(--b)}
+.ac small{color:var(--ts)}
+.mi{width:84px;padding:5px 7px}.mi.w{width:150px}
+.r{color:var(--r)}.am{color:#9c6a10}.ok{color:var(--ok)}
+.hint{background:#faf6ec;border:1px solid var(--ds);border-radius:8px;padding:8px 12px;font-size:.84rem;color:#7a5510;margin:0}
+.ac form{flex-direction:row;flex-wrap:wrap;margin-top:12px}
 @media(prefers-reduced-motion:no-preference){#mc{animation:up .18s ease-out}@keyframes up{from{transform:translateY(8px);opacity:0}}}
 @media print{body>*:not(#imp){display:none!important}#imp{display:block;font-family:Fraunces,Georgia,serif;color:#000;padding:0}
 #imp h1{font-size:26pt;margin-bottom:2pt}#imp h2{font-size:13pt;margin:16pt 0 4pt;border-bottom:1.5pt solid #1f3d2b;color:#1f3d2b}
@@ -82,7 +93,7 @@ iframe{height:calc(100vh - 100px)}}
   <button data-t="Ventas">💵 Ventas</button>
   <button data-t="Gastos">🧾 Gastos</button>
   <button data-t="Costeo">🧮 Costeo</button>
-  <button data-t="Recetas">📖 Recetas</button>
+  <button data-t="Fichas">📖 Fichas</button>
 </nav>
 <main><div id="bn"></div><div id="v"></div></main>
 <div id="m"><div id="mc"></div></div>
@@ -91,10 +102,8 @@ iframe{height:calc(100vh - 100px)}}
 
 <script>
 // ===== CONFIGURACIÓN =====
-// API de esta app (Code.gs nuevo: Domicilios, Ventas, Gastos, Recetas)
-const API = 'PEGA_AQUI_LA_URL_EXEC_DEL_NUEVO_APPS_SCRIPT';
-// API del costeo que ya tienes (solo lectura: trae tus productos y precios)
-const COSTEO_API = 'https://script.google.com/macros/s/AKfycbwFdFESZEjFdHaB2H6axo_DcvPorHiU35KQx4yq7Fy-fxLG2SGW-9YPmw7lnAxez1M2/exec';
+// URL de tu Apps Script (termina en /exec). Es la misma que ya usabas para el costeo.
+const API = 'https://script.google.com/macros/s/AKfycbwFdFESZEjFdHaB2H6axo_DcvPorHiU35KQx4yq7Fy-fxLG2SGW-9YPmw7lnAxez1M2/exec';
 
 // ===== UTILIDADES =====
 const $ = s => document.querySelector(s);
@@ -103,9 +112,9 @@ const cop = n => '$' + Math.round(+n || 0).toLocaleString('es-CO');
 const hoy = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const nid = s => s.slice(0, 3).toUpperCase() + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 const pj = s => { try { return JSON.parse(s) || {}; } catch (e) { return {}; } };
-const L = {Direccion:'Dirección',Telefono:'Teléfono',Metodo:'Método de pago',Envio:'Envío',Cantidad:'Cant.',Precio:'Precio unit.'};
+const L = {Categoria:'Categoría',CantidadComprada:'Cantidad comprada',UnidadCompra:'Unidad de compra',ValorTotalPagado:'Valor total pagado (última factura)',RendimientoTotal:'Rendimiento total',UnidadRendimiento:'Unidad de rendimiento',NombreProducto:'Nombre del producto',PrecioVenta:'Precio de venta',Direccion:'Dirección',Telefono:'Teléfono',Metodo:'Método de pago',Envio:'Envío',Cantidad:'Cant.',Precio:'Precio unit.'};
 const lb = k => L[k] || k;
-const S = {tab:'Domicilios', db:{Domicilios:[],Ventas:[],Gastos:[],Recetas:[]}, prod:[]};
+const S = {tab:'Domicilios', sub:'Productos', open:null, db:{ingredientes:[],subrecetas:[],subrecetasDetalle:[],recetas:[],recetasDetalle:[],productos:[],historico:[],Domicilios:[],Ventas:[],Gastos:[],Fichas:[]}};
 const MONEY = ['Total','Monto','Precio','Envio'];
 
 const M = {
@@ -131,18 +140,19 @@ async function load() {
   try {
     const j = await (await fetch(API)).json();
     if (!j.ok) throw new Error(j.error);
-    S.db = j.data; localStorage.setItem('tb', JSON.stringify(j.data)); banner('');
+    S.db = {...S.db, ...j.data}; localStorage.setItem('tb', JSON.stringify(S.db)); banner('');
   } catch (e) {
-    try { S.db = JSON.parse(localStorage.getItem('tb')) || S.db; } catch (x) {}
+    try { S.db = {...S.db, ...JSON.parse(localStorage.getItem('tb'))}; } catch (x) {}
     banner('Sin conexión con Google Sheets. Estás viendo la última copia guardada; los cambios no se enviarán.');
   }
-  try { S.prod = (await (await fetch(COSTEO_API + '?action=getAll')).json()).data.productos || []; } catch (e) {}
   render();
 }
 
 async function post(action, sheet, row) {
   const j = await (await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action, sheet, row})})).json();
   if (!j.ok) throw new Error(j.error);
+  if (j.data) S.db = {...S.db, ...j.data};
+  return j;
 }
 async function save(sheet, row) {
   row.ID = row.ID || nid(sheet);
@@ -159,7 +169,7 @@ async function del(sheet, id) {
 }
 
 // ===== LÓGICA ENTRE MÓDULOS =====
-const precioDe = n => { const p = S.prod.find(x => x.NombreProducto === n); return p ? +p.PrecioVenta || 0 : 0; };
+const precioDe = n => { const p = S.db.productos.find(x => x.NombreProducto === n); return p ? +p.PrecioVenta || 0 : 0; };
 
 // Un domicilio entregado crea su venta automáticamente (una sola vez)
 async function guardarDom(row) {
@@ -180,7 +190,7 @@ function avanzar(id) {
 function render() {
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === S.tab));
   const v = $('#v');
-  v.innerHTML = S.tab === 'Costeo' ? '<iframe src="costeo.html" title="Costeo de recetas"></iframe>' : S.tab === 'Recetas' ? vRec() : vMod(S.tab);
+  v.innerHTML = S.tab === 'Costeo' ? vCosteo() : S.tab === 'Fichas' ? vRec() : vMod(S.tab);
 }
 function kpis(n) {
   const mes = hoy().slice(0, 7), sum = (a, f) => a.reduce((s, r) => s + (+r[f] || 0), 0), en = (a, p) => a.filter(r => String(r.Fecha).startsWith(p));
@@ -214,8 +224,9 @@ function close() { $('#m').classList.remove('on'); $('#mc').innerHTML = ''; }
 function field([k, t, o], r) {
   const v = r[k] ?? (t === 'date' ? hoy() : '');
   if (t === 'sel') return `<label>${lb(k)}<select name="${k}">${o.map(x => `<option ${x == v ? 'selected' : ''}>${x}</option>`).join('')}</select></label>`;
-  if (t === 'prod') return `<label>Producto<input name="Producto" list="dlp" value="${esc(v)}" required autocomplete="off"><datalist id="dlp">${S.prod.map(p => `<option value="${esc(p.NombreProducto)}">`).join('')}</datalist></label>`;
-  const req = ['Cliente','Concepto','Cantidad','Monto','Fecha'].includes(k) ? 'required' : '';
+  if (t === 'prod') return `<label>Producto<input name="Producto" list="dlp" value="${esc(v)}" required autocomplete="off"><datalist id="dlp">${S.db.productos.map(p => `<option value="${esc(p.NombreProducto)}">`).join('')}</datalist></label>`;
+  if (t === 'rec') return `<label>Receta<select name="IDReceta" required><option value="">Elige una receta…</option>${S.db.recetas.map(x => `<option value="${x.ID}" ${x.ID === v ? 'selected' : ''}>${esc(x.Nombre)} — ${cop(costoRec(x.ID))}</option>`).join('')}</select></label>`;
+  const req = ['Cliente','Concepto','Cantidad','Monto','Fecha','Nombre','NombreProducto','RendimientoTotal','CantidadComprada','ValorTotalPagado','PrecioVenta'].includes(k) ? 'required' : '';
   return `<label>${lb(k)}<input name="${k}" type="${t}" ${t === 'number' ? 'step="any" min="0"' : ''} value="${esc(v)}" ${req}></label>`;
 }
 function form(n, id) {
@@ -234,14 +245,14 @@ function form(n, id) {
 
 // ===== RECETAS (módulo independiente) =====
 function vRec() {
-  const R = S.db.Recetas;
+  const R = S.db.Fichas;
   return `<header><h1>Recetas</h1><button class="b" data-a="new">Nueva receta</button></header><p class="sub">Redacta y da formato a tus fichas. Este módulo es independiente: no cambia costos, ventas ni inventario.</p>` +
     (R.length ? R.map(r => { const d = pj(r.Datos); return `<div class="card"><div><h3>${esc(r.Nombre)}</h3><small>${esc([d.cat, d.tiempo, d.porciones && d.porciones + ' porciones'].filter(Boolean).join(', '))}</small></div><div><button class="g" data-a="pdf" data-id="${r.ID}">Descargar PDF</button><button class="i" data-a="edit" data-id="${r.ID}" title="Editar">✎</button><button class="i" data-a="del" data-id="${r.ID}" title="Eliminar">🗑</button></div></div>`; }).join('')
     : `<div class="ev"><h3>Aún no hay recetas</h3><p>Crea tu primera ficha con los cinco bloques.</p></div>`);
 }
 const irow = i => `<div class="ir"><input class="ic" placeholder="Cant." value="${esc(i.c)}"><select class="iu">${UNI.map(u => `<option ${u === i.u ? 'selected' : ''}>${u}</option>`).join('')}</select><input class="in" placeholder="Ingrediente" value="${esc(i.n)}"><button type="button" class="i" data-rm title="Quitar">✕</button></div>`;
 function recForm(id) {
-  const r = S.db.Recetas.find(x => x.ID === id) || {}, d = pj(r.Datos), c = d.comp || {}, ing = d.ings && d.ings.length ? d.ings : [{}];
+  const r = S.db.Fichas.find(x => x.ID === id) || {}, d = pj(r.Datos), c = d.comp || {}, ing = d.ings && d.ings.length ? d.ings : [{}];
   modal(`<h3>${id ? 'Editar' : 'Nueva'} receta</h3><form>
     <h4>1. Encabezado y ficha técnica</h4>
     <label>Nombre<input name="nombre" required value="${esc(r.Nombre)}"></label>
@@ -256,11 +267,11 @@ function recForm(id) {
     const dat = {cat:v.cat, tiempo:v.tiempo, porciones:v.porciones, dif:v.dif, cal:v.cal, pasos:v.pasos, notas:v.notas,
       comp:Object.fromEntries(CAPAS.map((n, i) => [n, v['c' + i]])),
       ings:[...f.querySelectorAll('.ir')].map(x => ({c:x.querySelector('.ic').value, u:x.querySelector('.iu').value, n:x.querySelector('.in').value})).filter(i => i.n.trim())};
-    save('Recetas', {...r, Nombre:v.nombre, Datos:JSON.stringify(dat)});
+    save('Fichas', {...r, Nombre:v.nombre, Datos:JSON.stringify(dat)});
   });
 }
 function pdf(id) {
-  const r = S.db.Recetas.find(x => x.ID === id), d = pj(r.Datos), c = d.comp || {};
+  const r = S.db.Fichas.find(x => x.ID === id), d = pj(r.Datos), c = d.comp || {};
   $('#imp').innerHTML = `<h1>${esc(r.Nombre)}</h1><p>${esc(d.cat)}</p>
     <table class="ft"><tr><td><b>Tiempo</b><br>${esc(d.tiempo) || '—'}</td><td><b>Porciones</b><br>${esc(d.porciones) || '—'}</td><td><b>Dificultad</b><br>${esc(d.dif)}</td><td><b>Calorías / macros</b><br>${esc(d.cal) || '—'}</td></tr></table>
     <h2>Componentes del bowl</h2><table>${CAPAS.filter(n => c[n]).map(n => `<tr><td style="width:32%"><b>${n}</b></td><td>${esc(c[n])}</td></tr>`).join('')}</table>
@@ -271,6 +282,123 @@ function pdf(id) {
   setTimeout(() => window.print(), 350);
 }
 
+// ===== COSTEO (cálculos siempre desde el costo ACTUAL de cada ingrediente) =====
+const byId = (t, id) => S.db[t].find(x => x.ID === id);
+const ord = (t, k = 'Nombre') => [...S.db[t]].sort((a, b) => String(a[k]).localeCompare(String(b[k])));
+const aBase = (c, u) => /kg|\(l\)/.test(u) ? c * 1000 : c;
+const costoIng = id => +(byId('ingredientes', id) || {}).CostoPorUnidadBase || 0;
+const lineaSub = d => aBase(+d.CantidadUtilizada || 0, d.UnidadMedida) / (+d.TasaRendimiento > 0 ? d.TasaRendimiento / 100 : 1) * costoIng(d.IDIngrediente);
+const costoSub = id => S.db.subrecetasDetalle.filter(d => d.IDSubreceta === id).reduce((a, d) => a + lineaSub(d), 0);
+const costoUSub = id => { const s = byId('subrecetas', id); return s && +s.RendimientoTotal > 0 ? costoSub(id) / s.RendimientoTotal : 0; };
+const lineaRec = d => (+d.CantidadUtilizada || 0) * (d.TipoItem === 'Ingrediente' ? costoIng(d.IDItem) : costoUSub(d.IDItem));
+const costoRec = id => S.db.recetasDetalle.filter(d => d.IDReceta === id).reduce((a, d) => a + lineaRec(d), 0);
+const nom = (t, id) => (byId(t, id) || {Nombre:'(eliminado)'}).Nombre;
+const unidadItem = l => l.TipoItem === 'Ingrediente' ? (byId('ingredientes', l.IDItem) || {}).UnidadBase || '' : (byId('subrecetas', l.IDItem) || {}).UnidadRendimiento || '';
+const pct = n => ((+n || 0) * 100).toFixed(1) + '%';
+const fino = n => '$' + (+n || 0).toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fecha = i => { const d = new Date(i); return isNaN(d) ? '—' : d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}); };
+const mclass = m => m < 0 ? 'r' : m < .3 ? 'am' : 'ok';
+const UB = {g:['Gramo (g)','Kilogramo (kg)'], ml:['Mililitro (ml)','Litro (l)']};
+const optsItem = tipo => '<option value="">Elige…</option>' + (tipo === 'Subreceta'
+  ? S.db.subrecetas.map(s => `<option value="${s.ID}">${esc(s.Nombre)} — ${fino(costoUSub(s.ID))}/${esc(s.UnidadRendimiento)}</option>`)
+  : S.db.ingredientes.map(i => `<option value="${i.ID}">${esc(i.Nombre)} — ${fino(i.CostoPorUnidadBase)}/${esc(i.UnidadBase)}</option>`)).join('');
+
+const cab = (txt, t) => `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="b" data-a="~new" data-t="${t}">${txt}</button></div>`;
+const vac = (a, b) => `<div class="ev"><h3>${a}</h3><p>${b}</p></div>`;
+const tabla = (hs, rows, t, noEdit) => `<div class="tw"><table><thead><tr>${hs.map(h => `<th>${h}</th>`).join('')}${t ? '<th></th>' : ''}</tr></thead><tbody>${rows.map(([id, ...c]) => `<tr>${c.map(x => `<td class="${/^-?\$|%$/.test(String(x).replace(/<[^>]+>/g, '')) ? 'n' : ''}">${x}</td>`).join('')}${t ? `<td class="n">${noEdit ? '' : `<button class="i" data-a="~edit" data-t="${t}" data-id="${id}" title="Editar">✎</button>`}<button class="i" data-a="~del" data-t="${t}" data-id="${id}" title="Eliminar">🗑</button></td>` : ''}</tr>`).join('')}</tbody></table></div>`;
+const acc = (id, titulo, sub, costos, t, abierto, cuerpo) => `<div class="ac"><div class="ah" data-a="~tog" data-id="${id}"><div><h3>${esc(titulo)}</h3><small>${sub}</small></div><div>${costos} <button class="i" data-a="~edit" data-t="${t}" data-id="${id}" title="Editar">✎</button><button class="i" data-a="~del" data-t="${t}" data-id="${id}" title="Eliminar">🗑</button></div></div>${abierto ? cuerpo : ''}</div>`;
+
+function vCosteo() {
+  const tabs = ['Productos','Recetas','Subrecetas','Ingredientes','Histórico'];
+  return `<header><h1>Costeo</h1></header><div class="sb">${tabs.map(t => `<button data-a="~sub" data-id="${t}" class="${S.sub === t ? 'on' : ''}">${t}</button>`).join('')}</div>` +
+    ({Productos:cProd, Recetas:cRec, Subrecetas:cSub, Ingredientes:cIng, 'Histórico':cHis}[S.sub] || cProd)();
+}
+function cIng() {
+  const X = ord('ingredientes');
+  return cab('Nuevo ingrediente', 'ingredientes') + (X.length ? tabla(['Ingrediente','Categoría','Costo por unidad','Proveedor','Actualizado'],
+    X.map(i => [i.ID, `<b>${esc(i.Nombre)}</b>`, esc(i.Categoria) || '—', fino(i.CostoPorUnidadBase) + ' / ' + esc(i.UnidadBase), esc(i.Proveedor) || '—', fecha(i.UltimaActualizacion)]), 'ingredientes')
+    : vac('Aún no tienes ingredientes', 'Registra tu primer insumo para calcular costos reales.'));
+}
+function cSub() {
+  const X = ord('subrecetas');
+  return cab('Nueva subreceta', 'subrecetas') + (X.length ? X.map(s => {
+    const ls = S.db.subrecetasDetalle.filter(d => d.IDSubreceta === s.ID);
+    return acc(s.ID, s.Nombre, `Rinde ${esc(s.RendimientoTotal)} ${esc(s.UnidadRendimiento)}, ${ls.length} ingrediente(s)`, `<b>${cop(costoSub(s.ID))}</b> <small>${fino(costoUSub(s.ID))} por ${esc(s.UnidadRendimiento)}</small>`, 'subrecetas', S.open === s.ID, subBody(s, ls));
+  }).join('') : vac('Aún no tienes subrecetas', 'Crea una preparación base, como una salsa o una proteína porcionada.'));
+}
+const subBody = (s, ls) => `<div class="ab">${ls.length ? `<div class="tw"><table><thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Medida</th><th>Rendimiento</th><th>Costo</th><th></th></tr></thead><tbody>${ls.map(l => {
+  const ing = byId('ingredientes', l.IDIngrediente), ops = UB[ing ? ing.UnidadBase : 'g'] || ['Unidad'];
+  return `<tr data-l="${l.ID}"><td>${esc(nom('ingredientes', l.IDIngrediente))}</td><td><input class="mi" type="number" step="any" min="0" data-k="CantidadUtilizada" value="${esc(l.CantidadUtilizada)}"></td><td><select class="mi w" data-k="UnidadMedida">${ops.map(u => `<option ${u === l.UnidadMedida ? 'selected' : ''}>${u}</option>`).join('')}</select></td><td><input class="mi" type="number" step="any" min="1" max="100" data-k="TasaRendimiento" value="${esc(l.TasaRendimiento || 100)}"> %</td><td class="n">${fino(lineaSub(l))}</td><td><button class="i" data-a="~del" data-t="subrecetasDetalle" data-id="${l.ID}" title="Quitar">🗑</button></td></tr>`;
+}).join('')}</tbody></table></div>` : '<p>Aún no hay ingredientes en esta subreceta.</p>'}
+<form data-f="addSub" data-id="${s.ID}"><select name="IDIngrediente" required style="flex:1;min-width:200px;width:auto">${optsItem('Ingrediente')}</select><button class="b">Agregar ingrediente</button></form>
+<p style="font-size:.8rem;color:var(--ts)">Rendimiento 100% significa sin merma. Si el ingrediente pierde peso al prepararlo (pelado, cocción, limpieza), baja el porcentaje y el costo se ajusta solo.</p></div>`;
+function cRec() {
+  const X = ord('recetas');
+  return cab('Nueva receta', 'recetas') + (X.length ? X.map(r => {
+    const ls = S.db.recetasDetalle.filter(d => d.IDReceta === r.ID);
+    return acc(r.ID, r.Nombre, `${ls.length} componente(s)`, `<b>${cop(costoRec(r.ID))}</b>`, 'recetas', S.open === r.ID, recBody(r, ls));
+  }).join('') : vac('Aún no tienes recetas', 'Combina subrecetas e ingredientes sueltos en una receta.'));
+}
+const recBody = (r, ls) => `<div class="ab">${ls.length ? tabla(['Componente','Tipo','Cantidad','Costo'], ls.map(l => [l.ID, esc(nom(l.TipoItem === 'Subreceta' ? 'subrecetas' : 'ingredientes', l.IDItem)), l.TipoItem, esc(l.CantidadUtilizada) + ' ' + esc(unidadItem(l)), fino(lineaRec(l))]), 'recetasDetalle', true) : '<p>Aún no hay componentes en esta receta.</p>'}
+<form data-f="addRec" data-id="${r.ID}"><select name="TipoItem" style="width:130px"><option>Subreceta</option><option>Ingrediente</option></select><select name="IDItem" required style="flex:1;min-width:200px;width:auto">${optsItem('Subreceta')}</select><input name="CantidadUtilizada" type="number" step="any" min="0" placeholder="Cantidad" required style="width:110px"><button class="b">Agregar</button></form></div>`;
+function cProd() {
+  const X = ord('productos', 'NombreProducto'), calc = p => { const c = costoRec(p.IDReceta), pr = +p.PrecioVenta || 0; return {c, pr, u: pr - c, m: pr > 0 ? (pr - c) / pr : null}; };
+  const ms = X.map(p => [p, calc(p)]).filter(x => x[1].m !== null), prom = ms.length ? ms.reduce((a, x) => a + x[1].m, 0) / ms.length : null, peor = [...ms].sort((a, b) => a[1].m - b[1].m)[0];
+  return `<div class="k"><div><span>Margen promedio</span><strong>${prom === null ? '—' : pct(prom)}</strong></div><div><span>Menor margen</span><strong class="${peor ? mclass(peor[1].m) : ''}" style="font-size:1rem">${peor ? esc(peor[0].NombreProducto) + ' ' + pct(peor[1].m) : '—'}</strong></div></div>` +
+    cab('Nuevo producto', 'productos') + (X.length ? tabla(['Producto','Receta','Costo','Precio','Utilidad','Margen','Food cost'], X.map(p => {
+      const x = calc(p), k = x.m === null ? '' : mclass(x.m);
+      return [p.ID, `<b>${esc(p.NombreProducto)}</b>`, esc(nom('recetas', p.IDReceta)), cop(x.c), cop(x.pr), `<span class="${k}">${cop(x.u)}</span>`, `<span class="${k}">${x.m === null ? '—' : pct(x.m)}</span>`, x.pr > 0 ? pct(x.c / x.pr) : '—'];
+    }), 'productos') + '<p style="font-size:.8rem;color:var(--ts);margin-top:10px">Verde: margen de 30% o más. Ámbar: menos de 30%. Rojo: en pérdida.</p>' : vac('Aún no tienes productos', 'Toma una receta, ponle precio de venta y mira tu rentabilidad real.'));
+}
+function cHis() {
+  const H = S.db.historico;
+  return H.length ? tabla(['Fecha','Ingrediente','Antes','Después','Variación'], H.map(h => { const a = +h.ValorAnterior || 0, n = +h.ValorNuevo || 0, v = a > 0 ? (n - a) / a : null;
+    return [null, fecha(h.Fecha), esc(h.Nombre), fino(a), fino(n), v === null ? '—' : `<span class="${v > 0 ? 'r' : 'ok'}">${(v > 0 ? '+' : '') + pct(v)}</span>`]; }), null)
+    : vac('Sin cambios todavía', 'Cuando cambies el valor pagado de un ingrediente, el cambio queda registrado aquí.');
+}
+
+const CF = {
+  ingredientes:{t:'ingrediente', f:[['Nombre','text'],['Categoria','text'],['CantidadComprada','number'],['UnidadCompra','sel',['Gramo (g)','Kilogramo (kg)','Mililitro (ml)','Litro (l)','Unidad']],['ValorTotalPagado','number'],['Proveedor','text'],['Notas','text']]},
+  subrecetas:{t:'subreceta', f:[['Nombre','text'],['RendimientoTotal','number'],['UnidadRendimiento','sel',['g','ml','unidad']],['Notas','text']]},
+  recetas:{t:'receta', f:[['Nombre','text'],['Notas','text']]},
+  productos:{t:'producto', f:[['NombreProducto','text'],['IDReceta','rec'],['PrecioVenta','number'],['Notas','text']]}
+};
+function cform(t, id) {
+  const c = CF[t], r = byId(t, id) || {};
+  modal(`<h3>${id ? 'Editar' : 'Nuevo'} ${c.t}</h3><form>${c.f.map(f => field(f, r)).join('')}${t === 'ingredientes' ? '<p class="hint" id="pv"></p>' : ''}<footer><button type="button" class="g" data-x>Cancelar</button><button class="b">Guardar</button></footer></form>`, false, v => {
+    const row = {...r, ...v}; c.f.filter(f => f[1] === 'number').forEach(f => row[f[0]] = +v[f[0]] || 0);
+    csave(t, row);
+  });
+  if (t === 'ingredientes') {
+    const f = $('#mc form'), pv = () => { const u = f.UnidadCompra.value, b = aBase(+f.CantidadComprada.value || 0, u), ub = /\((k?g)\)/.test(u) ? 'g' : /\((m?l)\)/.test(u) ? 'ml' : 'unidad';
+      $('#pv').textContent = b > 0 ? 'Costo por unidad: ' + fino((+f.ValorTotalPagado.value || 0) / b) + ' / ' + ub : 'Costo por unidad: —'; };
+    f.addEventListener('input', pv); pv();
+  }
+}
+async function csave(t, row) { try { await post('save', t, row); render(); toast('Guardado', 'ok'); } catch (e) { toast('No se guardó: ' + e.message, 'err'); } }
+async function cdel(t, id) { try { await post('delete', t, {ID:id}); render(); toast('Eliminado', 'ok'); } catch (e) { toast('No se eliminó: ' + e.message, 'err'); } }
+function cact(a, d) {
+  if (a === 'sub') { S.sub = d.id; S.open = null; return render(); }
+  if (a === 'tog') { S.open = S.open === d.id ? null : d.id; return render(); }
+  if (a === 'new') return cform(d.t);
+  if (a === 'edit') return cform(d.t, d.id);
+  if (a === 'del' && confirm('¿Eliminar este registro? No se puede deshacer.')) cdel(d.t, d.id);
+}
+document.addEventListener('submit', e => {
+  const f = e.target.closest('[data-f]'); if (!f) return; e.preventDefault();
+  const v = Object.fromEntries(new FormData(f)), id = f.dataset.id;
+  if (f.dataset.f === 'addRec') csave('recetasDetalle', {IDReceta:id, TipoItem:v.TipoItem, IDItem:v.IDItem, CantidadUtilizada:+v.CantidadUtilizada || 0});
+  if (f.dataset.f === 'addSub') { const ing = byId('ingredientes', v.IDIngrediente); csave('subrecetasDetalle', {IDSubreceta:id, IDIngrediente:v.IDIngrediente, CantidadUtilizada:0, UnidadMedida:ing.UnidadBase === 'g' ? 'Gramo (g)' : ing.UnidadBase === 'ml' ? 'Mililitro (ml)' : 'Unidad', TasaRendimiento:100}); toast('Ahora ajusta cantidad, medida y rendimiento.'); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.name === 'TipoItem') { t.form.IDItem.innerHTML = optsItem(t.value); return; }
+  const tr = t.closest('tr[data-l]'); if (!tr || !t.dataset.k) return;
+  const row = {...byId('subrecetasDetalle', tr.dataset.l)};
+  tr.querySelectorAll('[data-k]').forEach(x => row[x.dataset.k] = x.type === 'number' ? +x.value : x.value);
+  csave('subrecetasDetalle', row);
+});
+
 // ===== EVENTOS =====
 document.querySelector('nav').onclick = e => { const b = e.target.closest('button'); if (b) { S.tab = b.dataset.t; render(); } };
 document.addEventListener('click', e => {
@@ -278,7 +406,8 @@ document.addEventListener('click', e => {
   const add = e.target.closest('[data-add]'); if (add) return $('#ings').insertAdjacentHTML('beforeend', irow({}));
   const rm = e.target.closest('[data-rm]'); if (rm) { if (document.querySelectorAll('.ir').length > 1) rm.parentElement.remove(); return; }
   const b = e.target.closest('[data-a]'); if (!b) return;
-  const {a, id} = b.dataset, rec = S.tab === 'Recetas';
+  const {a, id} = b.dataset, rec = S.tab === 'Fichas';
+  if (a[0] === '~') return cact(a.slice(1), b.dataset);
   if (a === 'retry') load();
   if (a === 'new') rec ? recForm() : form(S.tab);
   if (a === 'edit') rec ? recForm(id) : form(S.tab, id);
