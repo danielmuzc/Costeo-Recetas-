@@ -3,1192 +3,291 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Costo de Recetas Terra Bowl</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<title>Terra Bowl · Gestión</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --verde: #1f3d2b;
-  --verde-oscuro: #12271a;
-  --dorado: #c68a1f;
-  --dorado-suave: #f3e3bd;
-  --fondo: #f4f5f0;
-  --tarjeta: #ffffff;
-  --texto: #1c1f1d;
-  --texto-suave: #6b7268;
-  --borde: #e3e1d6;
-  --rojo: #b3432b;
-  --verde-ok: #2f7d4f;
-  --sombra: 0 1px 2px rgba(28,31,29,.05), 0 10px 30px -14px rgba(28,31,29,.20);
-  --radio: 12px;
-}
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background: var(--fondo);
-  color: var(--texto);
-  -webkit-font-smoothing: antialiased;
-}
-h1, h2, h3 { font-family: 'Fraunces', serif; margin: 0; font-weight: 600; }
-.oculto { display: none !important; }
-button { font-family: inherit; }
-
-#app { display: flex; min-height: 100vh; }
-
-/* SIDEBAR */
-.sidebar {
-  width: 250px; flex-shrink: 0; background: var(--verde); color: #fff;
-  padding: 26px 16px; display: flex; flex-direction: column; gap: 4px;
-  position: sticky; top: 0; height: 100vh; overflow-y: auto;
-}
-.marca { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; padding: 0 6px; }
-.marca-icono { font-size: 1.5rem; }
-.marca-texto { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 600; line-height: 1.2; }
-.marca-texto small { display: block; font-family: 'Inter', sans-serif; font-size: .65rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--dorado-suave); opacity: .9; }
-nav.tabs { display: flex; flex-direction: column; gap: 3px; }
-.tab-link {
-  all: unset; cursor: pointer; box-sizing: border-box; padding: 11px 14px; border-radius: 10px;
-  display: flex; align-items: center; gap: 11px; color: rgba(255,255,255,.75); font-size: .92rem; font-weight: 500;
-}
-.tab-link:hover { background: rgba(255,255,255,.08); color: #fff; }
-.tab-link.activo { background: var(--dorado); color: var(--verde-oscuro); font-weight: 700; }
-.tab-link .tab-icono { font-size: 1.05rem; width: 20px; text-align: center; }
-.sidebar-pie { margin-top: auto; padding: 14px 8px 0; font-size: .72rem; line-height: 1.5; color: rgba(255,255,255,.5); border-top: 1px solid rgba(255,255,255,.12); }
-
-/* TOPBAR */
-.topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--verde); color: #fff; position: sticky; top: 0; z-index: 20; }
-.topbar-titulo { font-size: .88rem; font-weight: 600; opacity: .9; }
-.icon-btn-topbar { all: unset; cursor: pointer; font-size: 1.25rem; color: #fff; padding: 4px 6px; border-radius: 6px; }
-.icon-btn-topbar:hover { background: rgba(255,255,255,.12); }
-@media (min-width: 861px) { #btnMenu { display: none; } }
-
-.main-wrap { flex: 1; min-width: 0; }
-.main { padding: 34px 44px 80px; max-width: 1180px; margin: 0 auto; }
-
-.encabezado-vista { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
-.encabezado-vista h1 { font-size: 1.65rem; }
-.subtitulo { margin: 6px 0 0; color: var(--texto-suave); font-size: .93rem; max-width: 480px; }
-
-/* BOTONES */
-.btn { font-size: .87rem; font-weight: 600; border: none; border-radius: 9px; padding: 10px 18px; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
-.btn:active { transform: scale(.97); }
-.btn-dorado { background: var(--dorado); color: var(--verde-oscuro); }
-.btn-dorado:hover { box-shadow: 0 4px 14px -4px rgba(198,138,31,.6); }
-.btn-fantasma { background: transparent; color: var(--texto-suave); border: 1px solid var(--borde); }
-.btn-fantasma:hover { background: #f0efe9; }
-.btn-chico { background: var(--verde); color: #fff; padding: 9px 15px; font-size: .82rem; white-space: nowrap; }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
-.icon-btn { all: unset; cursor: pointer; font-size: .95rem; padding: 6px 8px; border-radius: 7px; color: var(--texto-suave); }
-.icon-btn:hover { background: #eceae0; color: var(--texto); }
-
-/* BUSCADOR */
-.buscador { width: 100%; padding: 11px 14px; border: 1px solid var(--borde); border-radius: 10px; font-size: .9rem; margin-bottom: 18px; background: #fff; }
-.buscador:focus { outline: 2px solid var(--dorado); outline-offset: 1px; }
-
-/* TABLAS */
-.tabla-wrap { background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); overflow: hidden; overflow-x: auto; }
-table.tabla { width: 100%; border-collapse: collapse; }
-table.tabla th { text-align: left; font-size: .71rem; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); padding: 13px 16px; border-bottom: 1px solid var(--borde); background: #faf9f5; white-space: nowrap; }
-table.tabla td { padding: 13px 16px; border-bottom: 1px solid var(--borde); font-size: .89rem; vertical-align: middle; }
-table.tabla tr:last-child td { border-bottom: none; }
-table.tabla tr:hover td { background: #fbfaf6; }
-td.num, th.num { text-align: right; font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
-td.acciones { text-align: right; white-space: nowrap; }
-.chip-id { font-family: 'IBM Plex Mono', monospace; font-size: .67rem; color: var(--texto-suave); margin-top: 2px; }
-.muted { color: var(--texto-suave); }
-.muted-chico { display: block; font-size: .67rem; color: var(--texto-suave); }
-
-.tabla-mini { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-.tabla-mini th { text-align: left; font-size: .67rem; text-transform: uppercase; color: var(--texto-suave); padding: 8px 10px; border-bottom: 1px solid var(--borde); }
-.tabla-mini td { padding: 8px 10px; font-size: .85rem; border-bottom: 1px solid #eeece3; }
-.tabla-mini td.num, .tabla-mini th.num { text-align: right; font-family: 'IBM Plex Mono', monospace; }
-
-/* TARJETAS ITEM (subreceta / receta) */
-.tarjeta-item { background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); margin-bottom: 14px; overflow: hidden; }
-.tarjeta-item-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 20px; cursor: pointer; flex-wrap: wrap; }
-.tarjeta-item-cabeza h3 { font-size: 1.01rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.tarjeta-item-cabeza p { margin: 4px 0 0; font-size: .85rem; }
-.tarjeta-item-costos { display: flex; gap: 22px; }
-.tarjeta-item-costos > div { display: flex; flex-direction: column; align-items: flex-end; }
-.tarjeta-item-costos .num { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: .97rem; }
-.tarjeta-item-cuerpo { padding: 4px 20px 20px; border-top: 1px solid var(--borde); }
-.acciones { display: flex; align-items: center; gap: 2px; }
-.chip-tipo { font-size: .67rem; padding: 2px 8px; border-radius: 99px; font-weight: 600; }
-.chip-subreceta { background: var(--dorado-suave); color: #7a5510; }
-.chip-ingrediente { background: #e4ede7; color: var(--verde); }
-.form-linea { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.form-linea select, .form-linea input { padding: 9px 11px; border: 1px solid var(--borde); border-radius: 8px; font-size: .85rem; }
-.form-linea select[name="idIngrediente"], .form-linea select[name="idItem"] { flex: 1; min-width: 220px; }
-.form-linea input[name="cantidadUtilizada"] { width: 110px; }
-.form-linea-receta select.selector-tipo { width: 130px; }
-
-/* TABLA EDITABLE (líneas de subreceta: cantidad, medida y rendimiento en línea) */
-.tabla-editable td { vertical-align: middle; }
-.input-mini { width: 100%; min-width: 68px; padding: 6px 8px; border: 1px solid var(--borde); border-radius: 6px; font-size: .84rem; font-family: 'Inter', sans-serif; background: #fff; }
-.input-mini:focus { outline: 2px solid var(--dorado); outline-offset: 1px; }
-.celda-medida select.input-mini { min-width: 130px; }
-.celda-tasa { white-space: nowrap; }
-.celda-tasa .input-mini { width: 58px; display: inline-block; }
-.agregar-linea-sub { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.agregar-linea-sub select { flex: 1; min-width: 220px; padding: 9px 11px; border: 1px solid var(--borde); border-radius: 8px; font-size: .85rem; }
-
-/* KPI / RESUMEN */
-.grid-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 14px; margin-bottom: 24px; }
-.tarjeta-kpi { background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; }
-.kpi-valor { font-family: 'Fraunces', serif; font-size: 1.65rem; font-weight: 600; }
-.kpi-label { font-size: .75rem; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .04em; }
-.paneles-resumen { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
-.panel { background: var(--tarjeta); border-radius: var(--radio); box-shadow: var(--sombra); padding: 20px 22px; }
-.panel h3 { font-size: .96rem; margin-bottom: 12px; }
-.dato-grande { font-family: 'Fraunces', serif; font-size: 1.15rem; margin: 0; }
-
-/* ESTADOS Y COLORES */
-.rojo { color: var(--rojo); }
-.ambar { color: #9c6a10; }
-.verde { color: var(--verde-ok); }
-.aviso { background: var(--dorado-suave); color: #7a5510; padding: 10px 14px; border-radius: 9px; font-size: .85rem; margin-bottom: 14px; }
-.nota-pie { font-size: .78rem; color: var(--texto-suave); margin-top: 12px; }
-.estado-vacio { background: var(--tarjeta); border: 1px dashed var(--borde); border-radius: var(--radio); padding: 44px 30px; text-align: center; }
-.estado-vacio h3 { margin-bottom: 8px; }
-.estado-vacio p { color: var(--texto-suave); margin: 0 0 14px; }
-
-/* FORMULARIOS (modal) */
-.formulario { display: flex; flex-direction: column; gap: 14px; }
-.formulario label { display: flex; flex-direction: column; gap: 5px; font-size: .81rem; font-weight: 600; color: var(--texto-suave); }
-.formulario input, .formulario select, .formulario textarea { font-size: .92rem; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 8px; color: var(--texto); font-weight: 400; font-family: 'Inter', sans-serif; }
-.formulario input:focus, .formulario select:focus, .formulario textarea:focus { outline: 2px solid var(--dorado); outline-offset: 1px; }
-.fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.preview-costo { background: #faf6ec; border: 1px solid var(--dorado-suave); border-radius: 8px; padding: 9px 12px; font-size: .84rem; font-family: 'IBM Plex Mono', monospace; color: #7a5510; margin: 0; }
-.preview-rentabilidad .mini-kpis { display: flex; gap: 14px; background: #faf9f5; border-radius: 8px; padding: 12px 14px; flex-wrap: wrap; }
-.preview-rentabilidad .mini-kpis > div { display: flex; flex-direction: column; gap: 2px; }
-.preview-rentabilidad .num { font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
-.acciones-form { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
-
-/* MODAL */
-.modal-overlay { position: fixed; inset: 0; background: rgba(18,20,17,.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-.modal { background: #fff; border-radius: 16px; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 60px -20px rgba(0,0,0,.4); }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--borde); position: sticky; top: 0; background: #fff; }
-.modal-header h3 { font-size: 1.08rem; }
-.modal-body { padding: 22px; }
-
-/* TOASTS */
-.toasts { position: fixed; bottom: 22px; right: 22px; display: flex; flex-direction: column; gap: 8px; z-index: 200; max-width: calc(100vw - 44px); }
-.toast { background: var(--verde-oscuro); color: #fff; padding: 12px 18px; border-radius: 9px; font-size: .86rem; box-shadow: 0 10px 24px -8px rgba(0,0,0,.4); opacity: 1; transition: opacity .3s ease, transform .3s ease; max-width: 320px; }
-.toast-ok { background: var(--verde-ok); }
-.toast-error { background: var(--rojo); }
-.toast.salir { opacity: 0; transform: translateY(6px); }
-
-/* PANTALLAS AUXILIARES */
-.pantalla-carga { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px; background: var(--fondo); z-index: 50; }
-.spinner { width: 34px; height: 34px; border: 3px solid var(--borde); border-top-color: var(--dorado); border-radius: 50%; animation: girar .8s linear infinite; }
-@keyframes girar { to { transform: rotate(360deg); } }
-.pantalla-config { position: fixed; inset: 0; background: var(--fondo); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 30px; }
-.tarjeta-config { max-width: 560px; background: #fff; border-radius: 16px; box-shadow: var(--sombra); padding: 36px 38px; }
-.tarjeta-config h1 { font-size: 1.35rem; margin-bottom: 12px; }
-.tarjeta-config ol { padding-left: 20px; color: var(--texto-suave); font-size: .89rem; line-height: 1.75; }
-.tarjeta-config code { background: #f0efe9; padding: 2px 6px; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; font-size: .8rem; }
-
-/* RESPONSIVE */
-@media (max-width: 860px) {
-  .sidebar { position: fixed; left: -260px; top: 0; z-index: 40; transition: left .2s ease; }
-  .sidebar.abierto { left: 0; box-shadow: 20px 0 60px rgba(0,0,0,.25); }
-  .main { padding: 22px 16px 60px; }
-  .paneles-resumen { grid-template-columns: 1fr; }
-  .fila-2 { grid-template-columns: 1fr; }
-  .encabezado-vista { align-items: flex-start; }
-}
+:root{--v:#1f3d2b;--vo:#12271a;--d:#c68a1f;--ds:#f3e3bd;--bg:#f4f5f0;--b:#e3e1d6;--t:#1c1f1d;--ts:#6b7268;--r:#b3432b;--ok:#2f7d4f}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 Inter,system-ui,sans-serif;background:var(--bg);color:var(--t)}
+h1,h2,h3,h4{font-family:Fraunces,serif;margin:0;font-weight:600}
+nav{position:fixed;inset:0 auto 0 0;width:200px;background:var(--v);padding:22px 12px;display:flex;flex-direction:column;gap:4px;z-index:5}
+nav b{font:600 1.15rem Fraunces,serif;color:#fff;padding:0 10px 18px}
+nav button{all:unset;cursor:pointer;padding:10px 12px;border-radius:9px;color:rgba(255,255,255,.75);font-weight:500}
+nav button:hover{background:rgba(255,255,255,.08)}
+nav button.on{background:var(--d);color:var(--vo);font-weight:600}
+nav button:focus-visible,.b:focus-visible,.g:focus-visible,.i:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--d);outline-offset:2px}
+main{margin-left:200px;padding:30px 36px 60px;max-width:1100px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+h1{font-size:1.6rem}
+.sub{color:var(--ts);margin:-8px 0 18px}
+.b,.g{font:600 .87rem Inter,sans-serif;border:0;border-radius:9px;padding:10px 16px;cursor:pointer}
+.b{background:var(--d);color:var(--vo)}
+.g{background:#fff;border:1px solid var(--b);color:var(--ts)}
+.i{all:unset;cursor:pointer;padding:5px 8px;border-radius:6px;color:var(--ts)}
+.i:hover{background:#eceae0}
+.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px;margin-bottom:18px}
+.k div{background:#fff;border-radius:12px;padding:13px 16px;border:1px solid var(--b)}
+.k span{display:block;font-size:.76rem;color:var(--ts)}
+.k strong{font:600 1.3rem Fraunces,serif}
+.tw{background:#fff;border:1px solid var(--b);border-radius:12px;overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.78rem;color:var(--ts);padding:11px 14px;background:#faf9f5;border-bottom:1px solid var(--b);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--b);font-size:.9rem}
+tr:last-child td{border:0}
+.n{text-align:right;white-space:nowrap}
+.chip{border:0;border-radius:99px;padding:3px 11px;font:600 .75rem Inter,sans-serif;cursor:pointer}
+.e-Pendiente{background:var(--ds);color:#7a5510}
+.e-Encamino{background:#dbe7f3;color:#245079}
+.e-Entregado{background:#dcebe1;color:var(--ok);cursor:default}
+.ev{background:#fff;border:1px dashed var(--b);border-radius:12px;padding:38px;text-align:center}
+.ev p{color:var(--ts);margin:6px 0 0}
+.card{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid var(--b);border-radius:12px;padding:14px 18px;margin-bottom:10px;flex-wrap:wrap}
+.card small{color:var(--ts)}
+iframe{width:100%;height:calc(100vh - 70px);border:0;border-radius:12px;background:#fff}
+#m{position:fixed;inset:0;background:rgba(18,20,17,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+#m.on{display:flex}
+#mc{background:#fff;border-radius:14px;width:100%;max-width:460px;max-height:90vh;overflow:auto;padding:22px}
+#mc.wide{max-width:640px}
+form{display:flex;flex-direction:column;gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;color:var(--ts)}
+input,select,textarea{font:400 .92rem Inter,sans-serif;padding:9px 11px;border:1px solid var(--b);border-radius:8px;color:var(--t);width:100%}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ir{display:grid;grid-template-columns:70px 90px 1fr 32px;gap:6px}
+footer{display:flex;justify-content:flex-end;gap:10px}
+h4{margin-top:8px;border-bottom:1px solid var(--b);padding-bottom:4px}
+#bn{display:none;background:var(--ds);color:#7a5510;padding:9px 14px;border-radius:9px;margin-bottom:14px;font-size:.85rem}
+#bn.on{display:flex;justify-content:space-between;gap:10px;align-items:center}
+#t{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:99}
+#t div{background:var(--vo);color:#fff;padding:11px 16px;border-radius:9px;font-size:.86rem;max-width:300px}
+#t .err{background:var(--r)}#t .ok{background:var(--ok)}
+#imp{display:none}
+@media(max-width:760px){
+nav{inset:auto 0 0 0;width:100%;flex-direction:row;padding:6px;justify-content:space-around}
+nav b{display:none}
+nav button{padding:9px 6px;font-size:.72rem;text-align:center;flex:1}
+main{margin:0;padding:20px 14px 90px}
+.g2{grid-template-columns:1fr}.ir{grid-template-columns:60px 80px 1fr 30px}
+iframe{height:calc(100vh - 100px)}}
+@media(prefers-reduced-motion:no-preference){#mc{animation:up .18s ease-out}@keyframes up{from{transform:translateY(8px);opacity:0}}}
+@media print{body>*:not(#imp){display:none!important}#imp{display:block;font-family:Fraunces,Georgia,serif;color:#000;padding:0}
+#imp h1{font-size:26pt;margin-bottom:2pt}#imp h2{font-size:13pt;margin:16pt 0 4pt;border-bottom:1.5pt solid #1f3d2b;color:#1f3d2b}
+#imp table{width:100%}#imp td{border:0;padding:3pt 0;font:10.5pt Inter,sans-serif}#imp li,#imp p{font:10.5pt/1.5 Inter,sans-serif}
+#imp .ft td{border:1pt solid #ccc;padding:5pt 8pt}#imp .pie{margin-top:24pt;font:8pt Inter,sans-serif;color:#777}}
 </style>
 </head>
 <body>
-
-<div id="app" class="oculto">
-  <aside class="sidebar" id="sidebar">
-    <div class="marca">
-      <span class="marca-icono">🍽️</span>
-      <span class="marca-texto">Terra Bowl<br><small>Costeo de Recetas</small></span>
-    </div>
-    <nav class="tabs">
-      <button class="tab-link activo" data-tab="resumen"><span class="tab-icono">📊</span> Resumen</button>
-      <button class="tab-link" data-tab="ingredientes"><span class="tab-icono">🧂</span> Ingredientes</button>
-      <button class="tab-link" data-tab="subrecetas"><span class="tab-icono">🥣</span> Subrecetas</button>
-      <button class="tab-link" data-tab="recetas"><span class="tab-icono">🍽️</span> Recetas</button>
-      <button class="tab-link" data-tab="productos"><span class="tab-icono">🏷️</span> Productos</button>
-      <button class="tab-link" data-tab="historico"><span class="tab-icono">📈</span> Histórico</button>
-    </nav>
-    <div class="sidebar-pie">Cuando actualizas el valor pagado de un ingrediente, el costo de sus subrecetas, recetas y productos se recalcula solo.</div>
-  </aside>
-
-  <div class="main-wrap">
-    <div class="topbar">
-      <button class="icon-btn-topbar" id="btnMenu" title="Menú">☰</button>
-      <span class="topbar-titulo">Costeo de Recetas · Terra Bowl</span>
-      <button class="icon-btn-topbar" id="btnRefrescar" title="Actualizar datos">⟳</button>
-    </div>
-    <main class="main">
-      <div id="vista"></div>
-    </main>
-  </div>
-</div>
-
-<div class="modal-overlay oculto" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="modalTitulo"></h3>
-      <button class="icon-btn" id="modalCerrar" type="button">✕</button>
-    </div>
-    <div class="modal-body" id="modalCuerpo"></div>
-  </div>
-</div>
-
-<div class="toasts" id="toasts"></div>
-
-<div class="pantalla-carga" id="pantallaCarga">
-  <div class="spinner"></div>
-  <p class="muted">Cargando tus datos…</p>
-</div>
-
-<div class="pantalla-config oculto" id="pantallaConfig">
-  <div class="tarjeta-config">
-    <h1>Falta conectar la base de datos</h1>
-    <p class="muted">Esta app todavía no tiene la URL de tu Apps Script configurada.</p>
-    <ol>
-      <li>Abre tu Hoja de Cálculo y ve a Extensiones &gt; Apps Script.</li>
-      <li>Pega el contenido de <code>Code.gs</code> y guarda.</li>
-      <li>Ejecuta la función <code>inicializar</code> una vez (autoriza los permisos).</li>
-      <li>Ve a Implementar &gt; Nueva implementación &gt; Aplicación web, ejecuta como "Yo" y da acceso a "Cualquier usuario".</li>
-      <li>Copia la URL que termina en <code>/exec</code> y pégala en la constante <code>API_URL</code>, al inicio del script de este archivo.</li>
-    </ol>
-  </div>
-</div>
+<nav>
+  <b>Terra Bowl</b>
+  <button data-t="Domicilios">🛵 Domicilios</button>
+  <button data-t="Ventas">💵 Ventas</button>
+  <button data-t="Gastos">🧾 Gastos</button>
+  <button data-t="Costeo">🧮 Costeo</button>
+  <button data-t="Recetas">📖 Recetas</button>
+</nav>
+<main><div id="bn"></div><div id="v"></div></main>
+<div id="m"><div id="mc"></div></div>
+<div id="t"></div>
+<div id="imp"></div>
 
 <script>
-// =============================================================================
-// CONFIGURA AQUÍ LA CONEXIÓN A TU HOJA DE CÁLCULO (API publicada de Code.gs)
-// =============================================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbwFdFESZEjFdHaB2H6axo_DcvPorHiU35KQx4yq7Fy-fxLG2SGW-9YPmw7lnAxez1M2/exec';
+// ===== CONFIGURACIÓN =====
+// API de esta app (Code.gs nuevo: Domicilios, Ventas, Gastos, Recetas)
+const API = 'PEGA_AQUI_LA_URL_EXEC_DEL_NUEVO_APPS_SCRIPT';
+// API del costeo que ya tienes (solo lectura: trae tus productos y precios)
+const COSTEO_API = 'https://script.google.com/macros/s/AKfycbwFdFESZEjFdHaB2H6axo_DcvPorHiU35KQx4yq7Fy-fxLG2SGW-9YPmw7lnAxez1M2/exec';
 
-const state = {
-  data: null,
-  tab: 'resumen',
-  abiertaSub: null,
-  abiertaRec: null,
-  filtroIng: '',
-  filtroProd: ''
+// ===== UTILIDADES =====
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cop = n => '$' + Math.round(+n || 0).toLocaleString('es-CO');
+const hoy = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const nid = s => s.slice(0, 3).toUpperCase() + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+const pj = s => { try { return JSON.parse(s) || {}; } catch (e) { return {}; } };
+const L = {Direccion:'Dirección',Telefono:'Teléfono',Metodo:'Método de pago',Envio:'Envío',Cantidad:'Cant.',Precio:'Precio unit.'};
+const lb = k => L[k] || k;
+const S = {tab:'Domicilios', db:{Domicilios:[],Ventas:[],Gastos:[],Recetas:[]}, prod:[]};
+const MONEY = ['Total','Monto','Precio','Envio'];
+
+const M = {
+  Domicilios:{t:'Domicilios', cols:['Fecha','Cliente','Direccion','Producto','Domiciliario','Estado','Total'],
+    vacio:'Registra el primer pedido a domicilio con “Nuevo”.',
+    f:[['Fecha','date'],['Cliente','text'],['Telefono','tel'],['Direccion','text'],['Producto','prod'],['Cantidad','number'],['Domiciliario','text'],['Envio','number'],['Estado','sel',['Pendiente','En camino','Entregado']]]},
+  Ventas:{t:'Ventas', cols:['Fecha','Producto','Cantidad','Precio','Metodo','Total'],
+    vacio:'Registra una venta o marca un domicilio como entregado y aparecerá aquí.',
+    f:[['Fecha','date'],['Producto','prod'],['Cantidad','number'],['Precio','number'],['Metodo','sel',['Efectivo','Transferencia','Datáfono','Sin definir']],['Notas','text']]},
+  Gastos:{t:'Gastos y costos', cols:['Fecha','Concepto','Tipo','Monto'],
+    vacio:'Registra compras de insumos, arriendo, servicios y otros egresos.',
+    f:[['Fecha','date'],['Concepto','text'],['Tipo','sel',['Insumos','Costo fijo','Costo variable','Otro']],['Monto','number'],['Notas','text']]}
 };
+const CAPAS = ['Base','Proteína','Vegetales / Frutas','Salsa / Dressing','Toppings / Crunch'];
+const UNI = ['g','kg','ml','l','und','cda','cdta','taza'];
 
-// ---------------------------------------------------------------------------
-// ARRANQUE
-// ---------------------------------------------------------------------------
+// ===== DATOS: lectura, escritura optimista, caché y errores =====
+function toast(m, k) { const e = document.createElement('div'); e.className = k || ''; e.textContent = m; $('#t').appendChild(e); setTimeout(() => e.remove(), 3400); }
+function banner(msg) { const b = $('#bn'); b.classList.toggle('on', !!msg); b.innerHTML = msg ? `<span>${esc(msg)}</span><button class="g" data-a="retry">Reintentar</button>` : ''; }
 
-document.addEventListener('DOMContentLoaded', iniciar);
-
-function iniciar() {
-  if (!API_URL || API_URL.indexOf('PEGA_AQUI') !== -1) {
-    document.getElementById('pantallaCarga').classList.add('oculto');
-    document.getElementById('pantallaConfig').classList.remove('oculto');
-    return;
-  }
-  document.querySelectorAll('.tab-link').forEach(btn => btn.addEventListener('click', () => cambiarTab(btn.dataset.tab)));
-  document.getElementById('btnRefrescar').addEventListener('click', () => cargarDatos(true));
-  document.getElementById('btnMenu').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('abierto'));
-  document.getElementById('modalCerrar').addEventListener('click', cerrarModal);
-  document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target.id === 'modalOverlay') cerrarModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
-  document.querySelector('.main-wrap').addEventListener('click', () => {
-    if (window.innerWidth <= 860) document.getElementById('sidebar').classList.remove('abierto');
-  });
-  cargarDatos();
-}
-
-async function cargarDatos(manual) {
+async function load() {
+  if (API.includes('PEGA_AQUI')) { banner('Falta conectar la base de datos: pega la URL de tu nuevo Apps Script en la constante API de index.html.'); render(); return; }
   try {
-    if (manual) mostrarToast('Actualizando datos…', 'info');
-    const data = await apiGet();
-    state.data = data;
-    document.getElementById('pantallaCarga').classList.add('oculto');
-    document.getElementById('app').classList.remove('oculto');
-    renderVista();
-  } catch (err) {
-    document.getElementById('pantallaCarga').classList.add('oculto');
-    document.getElementById('app').classList.remove('oculto');
-    mostrarError('No se pudo cargar la información. Revisa que la URL de la API sea correcta y que la implementación esté publicada. Detalle: ' + err.message);
+    const j = await (await fetch(API)).json();
+    if (!j.ok) throw new Error(j.error);
+    S.db = j.data; localStorage.setItem('tb', JSON.stringify(j.data)); banner('');
+  } catch (e) {
+    try { S.db = JSON.parse(localStorage.getItem('tb')) || S.db; } catch (x) {}
+    banner('Sin conexión con Google Sheets. Estás viendo la última copia guardada; los cambios no se enviarán.');
   }
+  try { S.prod = (await (await fetch(COSTEO_API + '?action=getAll')).json()).data.productos || []; } catch (e) {}
+  render();
 }
 
-// ---------------------------------------------------------------------------
-// LLAMADAS AL API (Apps Script)
-// ---------------------------------------------------------------------------
-
-async function apiGet() {
-  const res = await fetch(API_URL + '?action=getAll');
-  const json = await res.json();
-  if (!json.ok) throw new Error(json.error || 'Error al leer los datos');
-  return json.data;
+async function post(action, sheet, row) {
+  const j = await (await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({action, sheet, row})})).json();
+  if (!j.ok) throw new Error(j.error);
+}
+async function save(sheet, row) {
+  row.ID = row.ID || nid(sheet);
+  const list = S.db[sheet], i = list.findIndex(x => x.ID === row.ID), old = list[i];
+  i < 0 ? list.push(row) : list[i] = row; render();
+  try { await post('save', sheet, row); localStorage.setItem('tb', JSON.stringify(S.db)); toast('Guardado', 'ok'); }
+  catch (e) { i < 0 ? list.splice(list.indexOf(row), 1) : list[i] = old; render(); toast('No se guardó: ' + e.message, 'err'); }
+}
+async function del(sheet, id) {
+  const list = S.db[sheet], i = list.findIndex(x => x.ID === id), old = list[i];
+  list.splice(i, 1); render();
+  try { await post('delete', sheet, {ID:id}); toast('Eliminado', 'ok'); }
+  catch (e) { list.splice(i, 0, old); render(); toast('No se eliminó: ' + e.message, 'err'); }
 }
 
-async function apiPost(action, data) {
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action, data })
-  });
-  const json = await res.json();
-  if (!json.ok) throw new Error(json.error || 'Error al guardar');
-  state.data = json.data;
-  return json.resultado;
-}
+// ===== LÓGICA ENTRE MÓDULOS =====
+const precioDe = n => { const p = S.prod.find(x => x.NombreProducto === n); return p ? +p.PrecioVenta || 0 : 0; };
 
-// ---------------------------------------------------------------------------
-// NAVEGACIÓN
-// ---------------------------------------------------------------------------
-
-function cambiarTab(tab) {
-  state.tab = tab;
-  state.abiertaSub = null;
-  state.abiertaRec = null;
-  document.querySelectorAll('.tab-link').forEach(b => b.classList.toggle('activo', b.dataset.tab === tab));
-  document.getElementById('sidebar').classList.remove('abierto');
-  renderVista();
-}
-
-function renderVista() {
-  const v = document.getElementById('vista');
-  switch (state.tab) {
-    case 'resumen': v.innerHTML = vistaResumen(); break;
-    case 'ingredientes': v.innerHTML = vistaIngredientes(); wireIngredientes(); break;
-    case 'subrecetas': v.innerHTML = vistaSubrecetas(); wireSubrecetas(); break;
-    case 'recetas': v.innerHTML = vistaRecetas(); wireRecetas(); break;
-    case 'productos': v.innerHTML = vistaProductos(); wireProductos(); break;
-    case 'historico': v.innerHTML = vistaHistorico(); break;
+// Un domicilio entregado crea su venta automáticamente (una sola vez)
+async function guardarDom(row) {
+  row.ID = row.ID || nid('Domicilios');
+  if (row.Estado === 'Entregado' && !row.VentaID) {
+    row.VentaID = nid('Ventas');
+    save('Ventas', {ID:row.VentaID, Fecha:row.Fecha, Producto:row.Producto, Cantidad:row.Cantidad, Precio:precioDe(row.Producto), Metodo:'Sin definir', Total:row.Cantidad * precioDe(row.Producto), Notas:'Domicilio de ' + row.Cliente});
+    toast('Venta registrada. Define el método de pago en Ventas.');
   }
+  save('Domicilios', row);
+}
+function avanzar(id) {
+  const r = S.db.Domicilios.find(x => x.ID === id), next = {'Pendiente':'En camino','En camino':'Entregado'}[r.Estado];
+  if (next) guardarDom({...r, Estado:next});
 }
 
-// ---------------------------------------------------------------------------
-// CÁLCULOS EN VIVO (siempre a partir del costo ACTUAL de cada ingrediente)
-// ---------------------------------------------------------------------------
-
-function costoIngredientePorId(id) {
-  const ing = state.data.ingredientes.find(i => i.ID === id);
-  return ing ? Number(ing.CostoPorUnidadBase) || 0 : 0;
+// ===== VISTAS =====
+function render() {
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === S.tab));
+  const v = $('#v');
+  v.innerHTML = S.tab === 'Costeo' ? '<iframe src="costeo.html" title="Costeo de recetas"></iframe>' : S.tab === 'Recetas' ? vRec() : vMod(S.tab);
 }
-function nombreIngrediente(id) {
-  const ing = state.data.ingredientes.find(i => i.ID === id);
-  return ing ? ing.Nombre : '(ingrediente eliminado)';
+function kpis(n) {
+  const mes = hoy().slice(0, 7), sum = (a, f) => a.reduce((s, r) => s + (+r[f] || 0), 0), en = (a, p) => a.filter(r => String(r.Fecha).startsWith(p));
+  const V = S.db.Ventas, G = S.db.Gastos, vm = en(V, mes), gm = en(G, mes);
+  let k = [];
+  if (n === 'Ventas') k = [['Hoy', cop(sum(en(V, hoy()), 'Total'))], ['Este mes', cop(sum(vm, 'Total'))], ['Gastos del mes', cop(sum(gm, 'Monto'))], ['Utilidad del mes', cop(sum(vm, 'Total') - sum(gm, 'Monto'))]]
+    .concat(['Efectivo','Transferencia','Datáfono'].map(m => [m, cop(sum(vm.filter(r => r.Metodo === m), 'Total'))]));
+  if (n === 'Gastos') k = [['Este mes', cop(sum(gm, 'Monto'))]].concat(['Insumos','Costo fijo','Costo variable','Otro'].map(t => [t, cop(sum(gm.filter(r => r.Tipo === t), 'Monto'))]));
+  if (n === 'Domicilios') k = ['Pendiente','En camino','Entregado'].map(e => [e + (e === 'Entregado' ? ' hoy' : ''), S.db.Domicilios.filter(r => r.Estado === e && (e !== 'Entregado' || r.Fecha === hoy())).length]);
+  return `<div class="k">${k.map(([a, b]) => `<div><span>${esc(a)}</span><strong>${b}</strong></div>`).join('')}</div>`;
 }
-function unidadIngrediente(id) {
-  const ing = state.data.ingredientes.find(i => i.ID === id);
-  return ing ? ing.UnidadBase : '';
+function cell(n, c, r) {
+  if (c === 'Estado') return `<button class="chip e-${esc(String(r.Estado).replace(' ', ''))}" data-a="adv" data-id="${r.ID}" title="Avanzar estado">${esc(r.Estado)}</button>`;
+  return MONEY.includes(c) ? cop(r[c]) : esc(r[c]);
 }
-function lineasSubreceta(idSub) {
-  return state.data.subrecetasDetalle.filter(d => d.IDSubreceta === idSub);
-}
-// Convierte una cantidad + unidad de medida elegida en la línea a la unidad base del ingrediente (g o ml)
-function convertirABase(cantidad, unidadMedida) {
-  switch (unidadMedida) {
-    case 'Kilogramo (kg)': return cantidad * 1000;
-    case 'Litro (l)': return cantidad * 1000;
-    default: return cantidad; // Gramo (g), Mililitro (ml), Unidad
-  }
-}
-// Unidades de medida válidas según el tipo de ingrediente (no tiene sentido ofrecer litros para algo sólido)
-function opcionesUnidadMedida(unidadBase) {
-  if (unidadBase === 'g') return ['Gramo (g)', 'Kilogramo (kg)'];
-  if (unidadBase === 'ml') return ['Mililitro (ml)', 'Litro (l)'];
-  return ['Unidad'];
-}
-// Costo real de una línea: convierte a la unidad base y ajusta por la tasa de rendimiento
-// (si el rendimiento es 90%, se necesita más cantidad "como se compra" para obtener la cantidad usable).
-function costoLineaSubreceta(d) {
-  const cantidadBase = convertirABase(Number(d.CantidadUtilizada) || 0, d.UnidadMedida);
-  const tasa = Number(d.TasaRendimiento);
-  const factor = tasa > 0 ? tasa / 100 : 1;
-  const cantidadEfectiva = cantidadBase / factor;
-  return cantidadEfectiva * costoIngredientePorId(d.IDIngrediente);
-}
-function costoTotalSubreceta(idSub) {
-  return lineasSubreceta(idSub).reduce((sum, d) => sum + costoLineaSubreceta(d), 0);
-}
-function costoPorUnidadSubreceta(idSub) {
-  const sub = state.data.subrecetas.find(s => s.ID === idSub);
-  if (!sub) return 0;
-  const rend = Number(sub.RendimientoTotal) || 0;
-  return rend > 0 ? costoTotalSubreceta(idSub) / rend : 0;
-}
-function nombreSubreceta(id) {
-  const s = state.data.subrecetas.find(s => s.ID === id);
-  return s ? s.Nombre : '(subreceta eliminada)';
-}
-function lineasReceta(idRec) {
-  return state.data.recetasDetalle.filter(d => d.IDReceta === idRec);
-}
-function costoLineaReceta(d) {
-  const cantidad = Number(d.CantidadUtilizada) || 0;
-  if (d.TipoItem === 'Ingrediente') return cantidad * costoIngredientePorId(d.IDItem);
-  if (d.TipoItem === 'Subreceta') return cantidad * costoPorUnidadSubreceta(d.IDItem);
-  return 0;
-}
-function costoTotalReceta(idRec) {
-  return lineasReceta(idRec).reduce((sum, d) => sum + costoLineaReceta(d), 0);
-}
-function nombreReceta(id) {
-  const r = state.data.recetas.find(r => r.ID === id);
-  return r ? r.Nombre : '(receta eliminada)';
-}
-function unidadItemReceta(l) {
-  if (l.TipoItem === 'Ingrediente') return unidadIngrediente(l.IDItem);
-  const s = state.data.subrecetas.find(s => s.ID === l.IDItem);
-  return s ? s.UnidadRendimiento : '';
+function vMod(n) {
+  const m = M[n], rows = [...S.db[n]].sort((a, b) => String(b.Fecha).localeCompare(String(a.Fecha)));
+  return `<header><h1>${m.t}</h1><button class="b" data-a="new">Nuevo registro</button></header>${kpis(n)}` +
+    (rows.length ? `<div class="tw"><table><thead><tr>${m.cols.map(c => `<th>${lb(c)}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map(r =>
+      `<tr>${m.cols.map(c => `<td class="${MONEY.includes(c) || c === 'Cantidad' ? 'n' : ''}">${cell(n, c, r)}</td>`).join('')}<td class="n"><button class="i" data-a="edit" data-id="${r.ID}" title="Editar">✎</button><button class="i" data-a="del" data-id="${r.ID}" title="Eliminar">🗑</button></td></tr>`).join('')}</tbody></table></div>`
+    : `<div class="ev"><h3>Aún no hay registros</h3><p>${m.vacio}</p></div>`);
 }
 
-// ---------------------------------------------------------------------------
-// FORMATO
-// ---------------------------------------------------------------------------
-
-function money(n) {
-  const v = Math.round(Number(n) || 0);
-  return (v < 0 ? '-' : '') + '$' + Math.abs(v).toLocaleString('es-CO');
+// ===== MODAL Y FORMULARIOS =====
+function modal(html, wide, onSubmit) {
+  const c = $('#mc'); c.className = wide ? 'wide' : ''; c.innerHTML = html; $('#m').classList.add('on');
+  const f = c.querySelector('form'); const first = f.querySelector('input,select'); if (first) first.focus();
+  f.onsubmit = e => { e.preventDefault(); onSubmit(Object.fromEntries(new FormData(f)), f); close(); };
 }
-function moneyFino(n) {
-  const v = Number(n) || 0;
-  return (v < 0 ? '-' : '') + '$' + Math.abs(v).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function close() { $('#m').classList.remove('on'); $('#mc').innerHTML = ''; }
+function field([k, t, o], r) {
+  const v = r[k] ?? (t === 'date' ? hoy() : '');
+  if (t === 'sel') return `<label>${lb(k)}<select name="${k}">${o.map(x => `<option ${x == v ? 'selected' : ''}>${x}</option>`).join('')}</select></label>`;
+  if (t === 'prod') return `<label>Producto<input name="Producto" list="dlp" value="${esc(v)}" required autocomplete="off"><datalist id="dlp">${S.prod.map(p => `<option value="${esc(p.NombreProducto)}">`).join('')}</datalist></label>`;
+  const req = ['Cliente','Concepto','Cantidad','Monto','Fecha'].includes(k) ? 'required' : '';
+  return `<label>${lb(k)}<input name="${k}" type="${t}" ${t === 'number' ? 'step="any" min="0"' : ''} value="${esc(v)}" ${req}></label>`;
 }
-function pct(n) {
-  return ((Number(n) || 0) * 100).toFixed(1) + '%';
-}
-function fecha(iso) {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-function escapeHTML(str) {
-  return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-}
-function estadoVacio(titulo, texto) {
-  return `<div class="estado-vacio"><h3>${escapeHTML(titulo)}</h3><p>${escapeHTML(texto)}</p></div>`;
-}
-
-// ---------------------------------------------------------------------------
-// VISTA: RESUMEN
-// ---------------------------------------------------------------------------
-
-function vistaResumen() {
-  const d = state.data;
-  const margenes = [];
-  let peor = null;
-  d.productos.forEach(p => {
-    const costo = costoTotalReceta(p.IDReceta);
-    const precio = Number(p.PrecioVenta) || 0;
-    if (precio <= 0) return;
-    const m = (precio - costo) / precio;
-    margenes.push(m);
-    if (!peor || m < peor.m) peor = { nombre: p.NombreProducto, m };
+function form(n, id) {
+  const m = M[n], r = S.db[n].find(x => x.ID === id) || (n === 'Domicilios' ? {Cantidad:1, Estado:'Pendiente'} : n === 'Ventas' ? {Cantidad:1} : {});
+  modal(`<h3>${id ? 'Editar' : 'Nuevo'}: ${m.t}</h3><form>${m.f.map(f => field(f, r)).join('')}<footer><button type="button" class="g" data-x>Cancelar</button><button class="b">Guardar</button></footer></form>`, false, v => {
+    const row = {...r, ...v, Cantidad:+v.Cantidad || 0};
+    if (n === 'Ventas') { row.Precio = +v.Precio || 0; row.Total = row.Cantidad * row.Precio; }
+    if (n === 'Gastos') row.Monto = +v.Monto || 0;
+    if (n === 'Domicilios') { row.Envio = +v.Envio || 0; row.Total = row.Cantidad * precioDe(v.Producto) + row.Envio; return guardarDom(row); }
+    save(n, row);
   });
-  const margenProm = margenes.length ? margenes.reduce((a, b) => a + b, 0) / margenes.length : null;
-  const ultimosCambios = d.historico.slice(0, 5);
-
-  return `
-    <div class="encabezado-vista">
-      <div><h1>Resumen</h1><p class="subtitulo">El estado de tus costos, de un vistazo.</p></div>
-    </div>
-    <div class="grid-kpi">
-      ${kpi('Ingredientes', d.ingredientes.length)}
-      ${kpi('Subrecetas', d.subrecetas.length)}
-      ${kpi('Recetas', d.recetas.length)}
-      ${kpi('Productos', d.productos.length)}
-      ${kpi('Margen promedio', margenProm !== null ? pct(margenProm) : '—')}
-    </div>
-    <div class="paneles-resumen">
-      <div class="panel">
-        <h3>Últimos cambios de precio</h3>
-        ${ultimosCambios.length ? `<table class="tabla-mini"><tbody>
-          ${ultimosCambios.map(h => `<tr>
-              <td>${escapeHTML(h.Nombre)}</td>
-              <td class="num">${moneyFino(h.ValorAnterior)} → ${moneyFino(h.ValorNuevo)}</td>
-              <td class="muted">${fecha(h.Fecha)}</td>
-            </tr>`).join('')}
-        </tbody></table>` : `<p class="muted">Aún no hay cambios registrados. Aparecerán aquí cada vez que actualices el valor pagado de un ingrediente.</p>`}
-      </div>
-      <div class="panel">
-        <h3>Producto con menor margen</h3>
-        ${peor ? `<p class="dato-grande ${peor.m < 0 ? 'rojo' : peor.m < 0.3 ? 'ambar' : 'verde'}">${escapeHTML(peor.nombre)}</p>
-          <p class="muted">Margen actual: ${pct(peor.m)}</p>` : `<p class="muted">Agrega productos con precio de venta para ver esta alerta.</p>`}
-      </div>
-    </div>
-  `;
-}
-function kpi(label, valor) {
-  return `<div class="tarjeta-kpi"><span class="kpi-valor">${valor}</span><span class="kpi-label">${escapeHTML(label)}</span></div>`;
-}
-
-// ---------------------------------------------------------------------------
-// VISTA: INGREDIENTES
-// ---------------------------------------------------------------------------
-
-function vistaIngredientes() {
-  const filtro = state.filtroIng.toLowerCase();
-  const lista = state.data.ingredientes
-    .filter(i => i.Nombre.toLowerCase().includes(filtro) || (i.Categoria || '').toLowerCase().includes(filtro))
-    .sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-
-  return `
-    <div class="encabezado-vista">
-      <div><h1>Ingredientes</h1><p class="subtitulo">El costo real de cada insumo, siempre al día.</p></div>
-      <button class="btn btn-dorado" id="btnNuevoIng">+ Nuevo ingrediente</button>
-    </div>
-    <input type="text" class="buscador" id="buscarIng" placeholder="Buscar ingrediente o categoría…" value="${escapeHTML(state.filtroIng)}">
-    ${lista.length ? `
-    <div class="tabla-wrap"><table class="tabla">
-      <thead><tr><th>Ingrediente</th><th>Categoría</th><th class="num">Costo por unidad</th><th>Proveedor</th><th>Actualizado</th><th></th></tr></thead>
-      <tbody>
-        ${lista.map(i => `<tr>
-            <td><strong>${escapeHTML(i.Nombre)}</strong><div class="chip-id">${i.ID}</div></td>
-            <td>${escapeHTML(i.Categoria) || '—'}</td>
-            <td class="num">${moneyFino(i.CostoPorUnidadBase)} / ${i.UnidadBase}</td>
-            <td>${escapeHTML(i.Proveedor) || '—'}</td>
-            <td class="muted">${fecha(i.UltimaActualizacion)}</td>
-            <td class="acciones">
-              <button class="icon-btn" data-accion="editarIng" data-id="${i.ID}" title="Editar">✎</button>
-              <button class="icon-btn" data-accion="eliminarIng" data-id="${i.ID}" title="Eliminar">🗑</button>
-            </td>
-          </tr>`).join('')}
-      </tbody>
-    </table></div>` : estadoVacio('Aún no tienes ingredientes registrados.', 'Registra tu primer insumo para empezar a calcular costos reales.')}
-  `;
-}
-
-function wireIngredientes() {
-  document.getElementById('btnNuevoIng').addEventListener('click', () => abrirFormIngrediente());
-  const buscar = document.getElementById('buscarIng');
-  buscar.addEventListener('input', () => {
-    state.filtroIng = buscar.value;
-    renderVista();
-    setTimeout(() => { const b = document.getElementById('buscarIng'); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 0);
-  });
-  document.querySelectorAll('[data-accion="editarIng"]').forEach(b => b.addEventListener('click', () => abrirFormIngrediente(b.dataset.id)));
-  document.querySelectorAll('[data-accion="eliminarIng"]').forEach(b => b.addEventListener('click', () => eliminarIngrediente(b.dataset.id)));
-}
-
-function calcularDerivados(unidadCompra, cantidad, valorTotal) {
-  let unidadBase, cantidadUnidadBase;
-  switch (unidadCompra) {
-    case 'Kilogramo (kg)': unidadBase = 'g'; cantidadUnidadBase = cantidad * 1000; break;
-    case 'Gramo (g)': unidadBase = 'g'; cantidadUnidadBase = cantidad; break;
-    case 'Litro (l)': unidadBase = 'ml'; cantidadUnidadBase = cantidad * 1000; break;
-    case 'Mililitro (ml)': unidadBase = 'ml'; cantidadUnidadBase = cantidad; break;
-    default: unidadBase = 'unidad'; cantidadUnidadBase = cantidad; break;
-  }
-  const costoPorUnidadBase = cantidadUnidadBase > 0 ? valorTotal / cantidadUnidadBase : 0;
-  return { unidadBase, cantidadUnidadBase, costoPorUnidadBase };
-}
-
-function abrirFormIngrediente(id) {
-  const ing = id ? state.data.ingredientes.find(i => i.ID === id) : null;
-  const categorias = [...new Set(state.data.ingredientes.map(i => i.Categoria).filter(Boolean))];
-  const unidades = ['Gramo (g)', 'Kilogramo (kg)', 'Mililitro (ml)', 'Litro (l)', 'Unidad'];
-  const cuerpo = `
-    <form id="formIngrediente" class="formulario">
-      <label>Nombre del ingrediente
-        <input type="text" name="nombre" required value="${ing ? escapeHTML(ing.Nombre) : ''}" placeholder="Ej. Pulpa de maracuyá">
-      </label>
-      <label>Categoría
-        <input type="text" name="categoria" list="listaCategorias" value="${ing ? escapeHTML(ing.Categoria || '') : ''}" placeholder="Ej. Frutas, Carnes, Empaques…">
-        <datalist id="listaCategorias">${categorias.map(c => `<option value="${escapeHTML(c)}">`).join('')}</datalist>
-      </label>
-      <div class="fila-2">
-        <label>Cantidad comprada
-          <input type="number" step="any" min="0" name="cantidadComprada" required value="${ing ? ing.CantidadComprada : ''}">
-        </label>
-        <label>Unidad de compra
-          <select name="unidadCompra" required>
-            ${unidades.map(u => `<option value="${u}" ${ing && ing.UnidadCompra === u ? 'selected' : ''}>${u}</option>`).join('')}
-          </select>
-        </label>
-      </div>
-      <label>Valor total pagado (última factura)
-        <input type="number" step="any" min="0" name="valorTotalPagado" required value="${ing ? ing.ValorTotalPagado : ''}">
-      </label>
-      <p class="preview-costo" id="previewCosto">Costo por unidad: —</p>
-      <div class="fila-2">
-        <label>Proveedor<input type="text" name="proveedor" value="${ing ? escapeHTML(ing.Proveedor || '') : ''}"></label>
-        <label>Notas<input type="text" name="notas" value="${ing ? escapeHTML(ing.Notas || '') : ''}"></label>
-      </div>
-      <div class="acciones-form">
-        <button type="button" class="btn btn-fantasma" id="btnCancelarForm">Cancelar</button>
-        <button type="submit" class="btn btn-dorado">${ing ? 'Guardar cambios' : 'Crear ingrediente'}</button>
-      </div>
-    </form>
-  `;
-  abrirModal(ing ? 'Editar ingrediente' : 'Nuevo ingrediente', cuerpo);
-
-  const form = document.getElementById('formIngrediente');
-  const actualizarPreview = () => {
-    const fd = new FormData(form);
-    const d = calcularDerivados(fd.get('unidadCompra'), Number(fd.get('cantidadComprada')) || 0, Number(fd.get('valorTotalPagado')) || 0);
-    document.getElementById('previewCosto').textContent = d.cantidadUnidadBase > 0
-      ? `Costo por unidad: ${moneyFino(d.costoPorUnidadBase)} / ${d.unidadBase}`
-      : 'Costo por unidad: —';
-  };
-  form.querySelectorAll('input[name="cantidadComprada"], input[name="valorTotalPagado"], select[name="unidadCompra"]').forEach(el => el.addEventListener('input', actualizarPreview));
-  actualizarPreview();
-
-  document.getElementById('btnCancelarForm').addEventListener('click', cerrarModal);
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const datos = Object.fromEntries(new FormData(form).entries());
-    datos.id = id;
-    try {
-      await apiPost(id ? 'updateIngrediente' : 'addIngrediente', datos);
-      cerrarModal();
-      mostrarToast(id ? 'Ingrediente actualizado.' : 'Ingrediente creado.', 'ok');
-      renderVista();
-    } catch (err) { mostrarToast(err.message, 'error'); }
-  });
-}
-
-async function eliminarIngrediente(id) {
-  const ing = state.data.ingredientes.find(i => i.ID === id);
-  if (!confirm(`¿Eliminar "${ing ? ing.Nombre : id}"? Esta acción no se puede deshacer.`)) return;
-  try {
-    await apiPost('deleteIngrediente', { id });
-    mostrarToast('Ingrediente eliminado.', 'ok');
-    renderVista();
-  } catch (err) { mostrarToast(err.message, 'error'); }
-}
-
-// ---------------------------------------------------------------------------
-// VISTA: SUBRECETAS
-// ---------------------------------------------------------------------------
-
-function vistaSubrecetas() {
-  const lista = [...state.data.subrecetas].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-  return `
-    <div class="encabezado-vista">
-      <div><h1>Subrecetas</h1><p class="subtitulo">Preparaciones base, como tu salsa de maracuyá o el cerdo porcionado.</p></div>
-      <button class="btn btn-dorado" id="btnNuevaSub">+ Nueva subreceta</button>
-    </div>
-    ${lista.length ? lista.map(s => tarjetaSubreceta(s)).join('') : estadoVacio('Aún no tienes subrecetas.', 'Crea una subreceta para agrupar los ingredientes de una preparación base.')}
-  `;
-}
-
-function tarjetaSubreceta(s) {
-  const abierta = state.abiertaSub === s.ID;
-  const costoTotal = costoTotalSubreceta(s.ID);
-  const costoUnidad = costoPorUnidadSubreceta(s.ID);
-  const lineas = lineasSubreceta(s.ID);
-  return `
-    <div class="tarjeta-item">
-      <div class="tarjeta-item-cabeza" data-toggle-sub="${s.ID}">
-        <div>
-          <h3>${escapeHTML(s.Nombre)} <span class="chip-id">${s.ID}</span></h3>
-          <p class="muted">Rinde ${s.RendimientoTotal} ${s.UnidadRendimiento} · ${lineas.length} ingrediente(s)</p>
-        </div>
-        <div class="tarjeta-item-costos">
-          <div><span class="num">${money(costoTotal)}</span><span class="muted-chico">total</span></div>
-          <div><span class="num">${moneyFino(costoUnidad)}</span><span class="muted-chico">por ${s.UnidadRendimiento}</span></div>
-        </div>
-        <div class="acciones">
-          <button class="icon-btn" data-accion="editarSub" data-id="${s.ID}" title="Editar">✎</button>
-          <button class="icon-btn" data-accion="eliminarSub" data-id="${s.ID}" title="Eliminar">🗑</button>
-          <button class="icon-btn" title="${abierta ? 'Cerrar' : 'Ver detalle'}">${abierta ? '▲' : '▼'}</button>
-        </div>
-      </div>
-      ${abierta ? detalleSubreceta(s, lineas) : ''}
-    </div>
-  `;
-}
-
-function detalleSubreceta(s, lineas) {
-  const ingredientesDisponibles = [...state.data.ingredientes].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-  return `
-    <div class="tarjeta-item-cuerpo">
-      ${lineas.length ? `<table class="tabla-mini tabla-editable">
-        <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Medida</th><th>Rendimiento</th><th class="num">Costo</th><th></th></tr></thead>
-        <tbody>
-          ${lineas.map(l => filaEditableSubreceta(s, l)).join('')}
-        </tbody>
-      </table>` : `<p class="muted">Todavía no agregas ingredientes a esta subreceta.</p>`}
-      <div class="agregar-linea-sub" data-form-add-sub="${s.ID}">
-        <select class="selector-agregar-ing">
-          <option value="">Selecciona un ingrediente…</option>
-          ${ingredientesDisponibles.map(i => `<option value="${i.ID}">${escapeHTML(i.Nombre)} — ${moneyFino(i.CostoPorUnidadBase)}/${i.UnidadBase}</option>`).join('')}
-        </select>
-        <button type="button" class="btn btn-chico" data-accion="agregarLineaSub" data-sub="${s.ID}">+ Agregar ingrediente</button>
-      </div>
-      <p class="nota-pie">Rendimiento 100% = sin merma. Si el ingrediente pierde peso o volumen al prepararlo (pelado, cocción, limpieza…), baja el porcentaje y el costo se ajusta solo para reflejar lo que de verdad cuesta.</p>
-    </div>
-  `;
-}
-
-function filaEditableSubreceta(s, l) {
-  const ing = state.data.ingredientes.find(i => i.ID === l.IDIngrediente);
-  const unidadBase = ing ? ing.UnidadBase : 'g';
-  const opciones = opcionesUnidadMedida(unidadBase);
-  return `
-    <tr data-linea-sub="${l.ID}" data-sub="${s.ID}">
-      <td>${escapeHTML(nombreIngrediente(l.IDIngrediente))}<div class="chip-id">${l.IDIngrediente}</div></td>
-      <td><input type="number" step="any" min="0" class="input-mini" data-campo="cantidadUtilizada" value="${l.CantidadUtilizada}"></td>
-      <td class="celda-medida"><select class="input-mini" data-campo="unidadMedida">${opciones.map(u => `<option value="${u}" ${l.UnidadMedida === u ? 'selected' : ''}>${u}</option>`).join('')}</select></td>
-      <td class="celda-tasa"><input type="number" step="any" min="1" max="100" class="input-mini" data-campo="tasaRendimiento" value="${l.TasaRendimiento || 100}"> %</td>
-      <td class="num">${moneyFino(costoLineaSubreceta(l))}</td>
-      <td class="acciones"><button class="icon-btn" data-accion="eliminarLineaSub" data-id="${l.ID}" data-sub="${s.ID}" title="Quitar">🗑</button></td>
-    </tr>
-  `;
-}
-
-function wireSubrecetas() {
-  document.getElementById('btnNuevaSub').addEventListener('click', () => abrirFormSubreceta());
-  document.querySelectorAll('[data-toggle-sub]').forEach(el => {
-    el.addEventListener('click', e => {
-      if (e.target.closest('[data-accion]')) return;
-      const id = el.dataset.toggleSub;
-      state.abiertaSub = state.abiertaSub === id ? null : id;
-      renderVista();
-    });
-  });
-  document.querySelectorAll('[data-accion="editarSub"]').forEach(b => b.addEventListener('click', () => abrirFormSubreceta(b.dataset.id)));
-  document.querySelectorAll('[data-accion="eliminarSub"]').forEach(b => b.addEventListener('click', () => eliminarSubreceta(b.dataset.id)));
-  document.querySelectorAll('[data-accion="eliminarLineaSub"]').forEach(b => b.addEventListener('click', () => eliminarLineaSubreceta(b.dataset.id, b.dataset.sub)));
-  document.querySelectorAll('[data-accion="agregarLineaSub"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const idSubreceta = btn.dataset.sub;
-      const select = btn.closest('[data-form-add-sub]').querySelector('.selector-agregar-ing');
-      const idIngrediente = select.value;
-      if (!idIngrediente) { mostrarToast('Selecciona un ingrediente primero.', 'error'); return; }
-      const ing = state.data.ingredientes.find(i => i.ID === idIngrediente);
-      const unidadMedida = ing.UnidadBase === 'g' ? 'Gramo (g)' : ing.UnidadBase === 'ml' ? 'Mililitro (ml)' : 'Unidad';
-      try {
-        await apiPost('addDetalleSubreceta', { idSubreceta, idIngrediente, cantidadUtilizada: 0, unidadMedida, tasaRendimiento: 100 });
-        mostrarToast('Ingrediente agregado. Ajusta cantidad, medida y rendimiento.', 'ok');
-        renderVista();
-      } catch (err) { mostrarToast(err.message, 'error'); }
-    });
-  });
-  document.querySelectorAll('[data-linea-sub]').forEach(tr => {
-    tr.querySelectorAll('[data-campo]').forEach(campo => {
-      campo.addEventListener('change', async () => {
-        const idLinea = tr.dataset.lineaSub;
-        const idSubreceta = tr.dataset.sub;
-        const lineaActual = state.data.subrecetasDetalle.find(d => d.ID === idLinea);
-        const idIngrediente = lineaActual ? lineaActual.IDIngrediente : '';
-        const cantidadUtilizada = tr.querySelector('[data-campo="cantidadUtilizada"]').value;
-        const unidadMedida = tr.querySelector('[data-campo="unidadMedida"]').value;
-        const tasaRendimiento = tr.querySelector('[data-campo="tasaRendimiento"]').value;
-        try {
-          await apiPost('updateDetalleSubreceta', { id: idLinea, idSubreceta, idIngrediente, cantidadUtilizada, unidadMedida, tasaRendimiento });
-          renderVista();
-        } catch (err) { mostrarToast(err.message, 'error'); }
-      });
-    });
-  });
-}
-
-function abrirFormSubreceta(id) {
-  const sub = id ? state.data.subrecetas.find(s => s.ID === id) : null;
-  const cuerpo = `
-    <form id="formSubreceta" class="formulario">
-      <label>Nombre de la subreceta
-        <input type="text" name="nombre" required value="${sub ? escapeHTML(sub.Nombre) : ''}" placeholder="Ej. Salsa de maracuyá x 1kg">
-      </label>
-      <div class="fila-2">
-        <label>Rendimiento total<input type="number" step="any" min="0" name="rendimientoTotal" required value="${sub ? sub.RendimientoTotal : ''}"></label>
-        <label>Unidad de rendimiento
-          <select name="unidadRendimiento" required>
-            ${['g', 'ml', 'unidad'].map(u => `<option value="${u}" ${sub && sub.UnidadRendimiento === u ? 'selected' : ''}>${u}</option>`).join('')}
-          </select>
-        </label>
-      </div>
-      <label>Notas<input type="text" name="notas" value="${sub ? escapeHTML(sub.Notas || '') : ''}"></label>
-      <div class="acciones-form">
-        <button type="button" class="btn btn-fantasma" id="btnCancelarForm">Cancelar</button>
-        <button type="submit" class="btn btn-dorado">${sub ? 'Guardar cambios' : 'Crear subreceta'}</button>
-      </div>
-    </form>
-  `;
-  abrirModal(sub ? 'Editar subreceta' : 'Nueva subreceta', cuerpo);
-  document.getElementById('btnCancelarForm').addEventListener('click', cerrarModal);
-  document.getElementById('formSubreceta').addEventListener('submit', async e => {
-    e.preventDefault();
-    const datos = Object.fromEntries(new FormData(e.target).entries());
-    datos.id = id;
-    try {
-      await apiPost(id ? 'updateSubreceta' : 'addSubreceta', datos);
-      cerrarModal();
-      mostrarToast(id ? 'Subreceta actualizada.' : 'Subreceta creada.', 'ok');
-      renderVista();
-    } catch (err) { mostrarToast(err.message, 'error'); }
-  });
-}
-
-async function eliminarSubreceta(id) {
-  const sub = state.data.subrecetas.find(s => s.ID === id);
-  if (!confirm(`¿Eliminar "${sub ? sub.Nombre : id}"? Esto también borrará sus líneas de ingredientes.`)) return;
-  try {
-    await apiPost('deleteSubreceta', { id });
-    mostrarToast('Subreceta eliminada.', 'ok');
-    renderVista();
-  } catch (err) { mostrarToast(err.message, 'error'); }
-}
-
-async function eliminarLineaSubreceta(id, idSubreceta) {
-  try {
-    await apiPost('deleteDetalleSubreceta', { id, idSubreceta });
-    mostrarToast('Ingrediente quitado de la subreceta.', 'ok');
-    renderVista();
-  } catch (err) { mostrarToast(err.message, 'error'); }
-}
-
-// ---------------------------------------------------------------------------
-// VISTA: RECETAS
-// ---------------------------------------------------------------------------
-
-function vistaRecetas() {
-  const lista = [...state.data.recetas].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-  return `
-    <div class="encabezado-vista">
-      <div><h1>Recetas</h1><p class="subtitulo">La combinación final de subrecetas e ingredientes, como tu panceta con salsa de maracuyá.</p></div>
-      <button class="btn btn-dorado" id="btnNuevaRec">+ Nueva receta</button>
-    </div>
-    ${lista.length ? lista.map(r => tarjetaReceta(r)).join('') : estadoVacio('Aún no tienes recetas.', 'Crea una receta y agrégale subrecetas o ingredientes sueltos.')}
-  `;
-}
-
-function tarjetaReceta(r) {
-  const abierta = state.abiertaRec === r.ID;
-  const costoTotal = costoTotalReceta(r.ID);
-  const lineas = lineasReceta(r.ID);
-  return `
-    <div class="tarjeta-item">
-      <div class="tarjeta-item-cabeza" data-toggle-rec="${r.ID}">
-        <div>
-          <h3>${escapeHTML(r.Nombre)} <span class="chip-id">${r.ID}</span></h3>
-          <p class="muted">${lineas.length} componente(s)</p>
-        </div>
-        <div class="tarjeta-item-costos">
-          <div><span class="num">${money(costoTotal)}</span><span class="muted-chico">costo total</span></div>
-        </div>
-        <div class="acciones">
-          <button class="icon-btn" data-accion="editarRec" data-id="${r.ID}" title="Editar">✎</button>
-          <button class="icon-btn" data-accion="eliminarRec" data-id="${r.ID}" title="Eliminar">🗑</button>
-          <button class="icon-btn" title="${abierta ? 'Cerrar' : 'Ver detalle'}">${abierta ? '▲' : '▼'}</button>
-        </div>
-      </div>
-      ${abierta ? detalleReceta(r, lineas) : ''}
-    </div>
-  `;
-}
-
-function detalleReceta(r, lineas) {
-  const subDisponibles = [...state.data.subrecetas].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-  return `
-    <div class="tarjeta-item-cuerpo">
-      ${lineas.length ? `<table class="tabla-mini">
-        <thead><tr><th>Componente</th><th>Tipo</th><th class="num">Cantidad</th><th class="num">Costo línea</th><th></th></tr></thead>
-        <tbody>
-          ${lineas.map(l => `<tr>
-              <td>${escapeHTML(l.TipoItem === 'Subreceta' ? nombreSubreceta(l.IDItem) : nombreIngrediente(l.IDItem))}</td>
-              <td><span class="chip-tipo chip-${l.TipoItem.toLowerCase()}">${l.TipoItem}</span></td>
-              <td class="num">${l.CantidadUtilizada} ${unidadItemReceta(l)}</td>
-              <td class="num">${moneyFino(costoLineaReceta(l))}</td>
-              <td class="acciones"><button class="icon-btn" data-accion="eliminarLineaRec" data-id="${l.ID}" data-rec="${r.ID}" title="Quitar">🗑</button></td>
-            </tr>`).join('')}
-        </tbody>
-      </table>` : `<p class="muted">Todavía no agregas componentes a esta receta.</p>`}
-      <form class="form-linea form-linea-receta" data-form-linea-rec="${r.ID}">
-        <select name="tipoItem" class="selector-tipo">
-          <option value="Subreceta">Subreceta</option>
-          <option value="Ingrediente">Ingrediente</option>
-        </select>
-        <select name="idItem" required>
-          <option value="">Elige subreceta…</option>
-          ${subDisponibles.map(s => `<option value="${s.ID}">${escapeHTML(s.Nombre)} — ${moneyFino(costoPorUnidadSubreceta(s.ID))}/${s.UnidadRendimiento}</option>`).join('')}
-        </select>
-        <input type="number" step="any" min="0" name="cantidadUtilizada" placeholder="Cantidad" required>
-        <button type="submit" class="btn btn-chico">+ Agregar</button>
-      </form>
-    </div>
-  `;
-}
-
-function actualizarOpcionesItem(selectorTipo, selectorItem) {
-  if (selectorTipo.value === 'Subreceta') {
-    const subs = [...state.data.subrecetas].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-    selectorItem.innerHTML = `<option value="">Elige subreceta…</option>` + subs.map(s => `<option value="${s.ID}">${escapeHTML(s.Nombre)} — ${moneyFino(costoPorUnidadSubreceta(s.ID))}/${s.UnidadRendimiento}</option>`).join('');
-  } else {
-    const ings = [...state.data.ingredientes].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-    selectorItem.innerHTML = `<option value="">Elige ingrediente…</option>` + ings.map(i => `<option value="${i.ID}">${escapeHTML(i.Nombre)} — ${moneyFino(i.CostoPorUnidadBase)}/${i.UnidadBase}</option>`).join('');
+  if (n === 'Ventas') { // al elegir producto se completa el precio del catálogo de costeo
+    const f = $('#mc form'); f.Producto.addEventListener('input', () => { const p = precioDe(f.Producto.value); if (p) f.Precio.value = p; });
   }
 }
 
-function wireRecetas() {
-  document.getElementById('btnNuevaRec').addEventListener('click', () => abrirFormReceta());
-  document.querySelectorAll('[data-toggle-rec]').forEach(el => {
-    el.addEventListener('click', e => {
-      if (e.target.closest('[data-accion]')) return;
-      const id = el.dataset.toggleRec;
-      state.abiertaRec = state.abiertaRec === id ? null : id;
-      renderVista();
-    });
-  });
-  document.querySelectorAll('[data-accion="editarRec"]').forEach(b => b.addEventListener('click', () => abrirFormReceta(b.dataset.id)));
-  document.querySelectorAll('[data-accion="eliminarRec"]').forEach(b => b.addEventListener('click', () => eliminarReceta(b.dataset.id)));
-  document.querySelectorAll('[data-accion="eliminarLineaRec"]').forEach(b => b.addEventListener('click', () => eliminarLineaReceta(b.dataset.id, b.dataset.rec)));
-  document.querySelectorAll('.form-linea-receta').forEach(form => {
-    const selectorTipo = form.querySelector('.selector-tipo');
-    const selectorItem = form.querySelector('select[name="idItem"]');
-    selectorTipo.addEventListener('change', () => actualizarOpcionesItem(selectorTipo, selectorItem));
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const idReceta = form.dataset.formLineaRec;
-      const fd = new FormData(form);
-      try {
-        await apiPost('addDetalleReceta', { idReceta, tipoItem: fd.get('tipoItem'), idItem: fd.get('idItem'), cantidadUtilizada: fd.get('cantidadUtilizada') });
-        mostrarToast('Componente agregado a la receta.', 'ok');
-        renderVista();
-      } catch (err) { mostrarToast(err.message, 'error'); }
-    });
+// ===== RECETAS (módulo independiente) =====
+function vRec() {
+  const R = S.db.Recetas;
+  return `<header><h1>Recetas</h1><button class="b" data-a="new">Nueva receta</button></header><p class="sub">Redacta y da formato a tus fichas. Este módulo es independiente: no cambia costos, ventas ni inventario.</p>` +
+    (R.length ? R.map(r => { const d = pj(r.Datos); return `<div class="card"><div><h3>${esc(r.Nombre)}</h3><small>${esc([d.cat, d.tiempo, d.porciones && d.porciones + ' porciones'].filter(Boolean).join(', '))}</small></div><div><button class="g" data-a="pdf" data-id="${r.ID}">Descargar PDF</button><button class="i" data-a="edit" data-id="${r.ID}" title="Editar">✎</button><button class="i" data-a="del" data-id="${r.ID}" title="Eliminar">🗑</button></div></div>`; }).join('')
+    : `<div class="ev"><h3>Aún no hay recetas</h3><p>Crea tu primera ficha con los cinco bloques.</p></div>`);
+}
+const irow = i => `<div class="ir"><input class="ic" placeholder="Cant." value="${esc(i.c)}"><select class="iu">${UNI.map(u => `<option ${u === i.u ? 'selected' : ''}>${u}</option>`).join('')}</select><input class="in" placeholder="Ingrediente" value="${esc(i.n)}"><button type="button" class="i" data-rm title="Quitar">✕</button></div>`;
+function recForm(id) {
+  const r = S.db.Recetas.find(x => x.ID === id) || {}, d = pj(r.Datos), c = d.comp || {}, ing = d.ings && d.ings.length ? d.ings : [{}];
+  modal(`<h3>${id ? 'Editar' : 'Nueva'} receta</h3><form>
+    <h4>1. Encabezado y ficha técnica</h4>
+    <label>Nombre<input name="nombre" required value="${esc(r.Nombre)}"></label>
+    <div class="g2"><label>Categoría / estilo<input name="cat" value="${esc(d.cat)}"></label><label>Tiempo de preparación<input name="tiempo" placeholder="25 min" value="${esc(d.tiempo)}"></label>
+    <label>Porciones<input name="porciones" value="${esc(d.porciones)}"></label><label>Dificultad<select name="dif">${['Fácil','Media','Alta'].map(x => `<option ${x === d.dif ? 'selected' : ''}>${x}</option>`).join('')}</select></label></div>
+    <label>Calorías / macros<input name="cal" placeholder="520 kcal, P 32 g, C 48 g, G 18 g" value="${esc(d.cal)}"></label>
+    <h4>2. Componentes del bowl</h4>${CAPAS.map((n, i) => `<label>${n}<input name="c${i}" value="${esc(c[n])}"></label>`).join('')}
+    <h4>3. Ingredientes</h4><div id="ings" style="display:flex;flex-direction:column;gap:6px">${ing.map(irow).join('')}</div><button type="button" class="g" data-add>Agregar ingrediente</button>
+    <h4>4. Instrucciones de preparación</h4><label>Un paso por línea<textarea name="pasos" rows="5">${esc(d.pasos)}</textarea></label>
+    <h4>5. Notas del chef</h4><label>Sustituciones, emplatado, meal prep<textarea name="notas" rows="3">${esc(d.notas)}</textarea></label>
+    <footer><button type="button" class="g" data-x>Cancelar</button><button class="b">Guardar receta</button></footer></form>`, true, (v, f) => {
+    const dat = {cat:v.cat, tiempo:v.tiempo, porciones:v.porciones, dif:v.dif, cal:v.cal, pasos:v.pasos, notas:v.notas,
+      comp:Object.fromEntries(CAPAS.map((n, i) => [n, v['c' + i]])),
+      ings:[...f.querySelectorAll('.ir')].map(x => ({c:x.querySelector('.ic').value, u:x.querySelector('.iu').value, n:x.querySelector('.in').value})).filter(i => i.n.trim())};
+    save('Recetas', {...r, Nombre:v.nombre, Datos:JSON.stringify(dat)});
   });
 }
-
-function abrirFormReceta(id) {
-  const rec = id ? state.data.recetas.find(r => r.ID === id) : null;
-  const cuerpo = `
-    <form id="formReceta" class="formulario">
-      <label>Nombre de la receta<input type="text" name="nombre" required value="${rec ? escapeHTML(rec.Nombre) : ''}" placeholder="Ej. Panceta con salsa de maracuyá"></label>
-      <label>Notas<input type="text" name="notas" value="${rec ? escapeHTML(rec.Notas || '') : ''}"></label>
-      <div class="acciones-form">
-        <button type="button" class="btn btn-fantasma" id="btnCancelarForm">Cancelar</button>
-        <button type="submit" class="btn btn-dorado">${rec ? 'Guardar cambios' : 'Crear receta'}</button>
-      </div>
-    </form>
-  `;
-  abrirModal(rec ? 'Editar receta' : 'Nueva receta', cuerpo);
-  document.getElementById('btnCancelarForm').addEventListener('click', cerrarModal);
-  document.getElementById('formReceta').addEventListener('submit', async e => {
-    e.preventDefault();
-    const datos = Object.fromEntries(new FormData(e.target).entries());
-    datos.id = id;
-    try {
-      await apiPost(id ? 'updateReceta' : 'addReceta', datos);
-      cerrarModal();
-      mostrarToast(id ? 'Receta actualizada.' : 'Receta creada.', 'ok');
-      renderVista();
-    } catch (err) { mostrarToast(err.message, 'error'); }
-  });
+function pdf(id) {
+  const r = S.db.Recetas.find(x => x.ID === id), d = pj(r.Datos), c = d.comp || {};
+  $('#imp').innerHTML = `<h1>${esc(r.Nombre)}</h1><p>${esc(d.cat)}</p>
+    <table class="ft"><tr><td><b>Tiempo</b><br>${esc(d.tiempo) || '—'}</td><td><b>Porciones</b><br>${esc(d.porciones) || '—'}</td><td><b>Dificultad</b><br>${esc(d.dif)}</td><td><b>Calorías / macros</b><br>${esc(d.cal) || '—'}</td></tr></table>
+    <h2>Componentes del bowl</h2><table>${CAPAS.filter(n => c[n]).map(n => `<tr><td style="width:32%"><b>${n}</b></td><td>${esc(c[n])}</td></tr>`).join('')}</table>
+    <h2>Ingredientes</h2><ul>${(d.ings || []).map(i => `<li>${esc([i.c, i.u].filter(Boolean).join(' '))} ${esc(i.n)}</li>`).join('')}</ul>
+    <h2>Preparación</h2><ol>${(d.pasos || '').split('\n').filter(s => s.trim()).map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+    ${d.notas ? `<h2>Notas del chef</h2><p>${esc(d.notas).replace(/\n/g, '<br>')}</p>` : ''}<p class="pie">Terra Bowl</p>`;
+  toast('En el diálogo de impresión elige “Guardar como PDF”.');
+  setTimeout(() => window.print(), 350);
 }
 
-async function eliminarReceta(id) {
-  const rec = state.data.recetas.find(r => r.ID === id);
-  if (!confirm(`¿Eliminar "${rec ? rec.Nombre : id}"? Esto también borrará sus componentes.`)) return;
-  try {
-    await apiPost('deleteReceta', { id });
-    mostrarToast('Receta eliminada.', 'ok');
-    renderVista();
-  } catch (err) { mostrarToast(err.message, 'error'); }
-}
-
-async function eliminarLineaReceta(id, idReceta) {
-  try {
-    await apiPost('deleteDetalleReceta', { id, idReceta });
-    mostrarToast('Componente quitado.', 'ok');
-    renderVista();
-  } catch (err) { mostrarToast(err.message, 'error'); }
-}
-
-// ---------------------------------------------------------------------------
-// VISTA: PRODUCTOS
-// ---------------------------------------------------------------------------
-
-function vistaProductos() {
-  const filtro = state.filtroProd.toLowerCase();
-  const lista = state.data.productos
-    .filter(p => p.NombreProducto.toLowerCase().includes(filtro))
-    .sort((a, b) => a.NombreProducto.localeCompare(b.NombreProducto));
-  const sinRecetas = state.data.recetas.length === 0;
-
-  return `
-    <div class="encabezado-vista">
-      <div><h1>Productos</h1><p class="subtitulo">Lo que vendes: precio, costo real y rentabilidad.</p></div>
-      <button class="btn btn-dorado" id="btnNuevoProd" ${sinRecetas ? 'disabled' : ''}>+ Nuevo producto</button>
-    </div>
-    ${sinRecetas ? `<p class="aviso">Necesitas al menos una receta creada para poder armar un producto.</p>` : ''}
-    <input type="text" class="buscador" id="buscarProd" placeholder="Buscar producto…" value="${escapeHTML(state.filtroProd)}">
-    ${lista.length ? `
-    <div class="tabla-wrap"><table class="tabla">
-      <thead><tr><th>Producto</th><th>Receta</th><th class="num">Costo</th><th class="num">Precio</th><th class="num">Utilidad</th><th class="num">Margen</th><th class="num">Food cost</th><th></th></tr></thead>
-      <tbody>${lista.map(p => filaProducto(p)).join('')}</tbody>
-    </table></div>
-    <p class="nota-pie">Referencia de color: verde = margen saludable (≥50%), ámbar = ajustado (30–49%), rojo = en pérdida o muy bajo. Ajústalo según tu propio criterio de negocio.</p>
-    ` : estadoVacio('Aún no tienes productos.', 'Toma una receta, ponle un precio de venta y descubre tu rentabilidad real.')}
-  `;
-}
-
-function filaProducto(p) {
-  const costo = costoTotalReceta(p.IDReceta);
-  const precio = Number(p.PrecioVenta) || 0;
-  const utilidad = precio - costo;
-  const margen = precio > 0 ? utilidad / precio : 0;
-  const foodCost = precio > 0 ? costo / precio : 0;
-  const clase = precio <= 0 ? '' : margen < 0 ? 'rojo' : margen < 0.3 ? 'ambar' : 'verde';
-  return `
-    <tr>
-      <td><strong>${escapeHTML(p.NombreProducto)}</strong><div class="chip-id">${p.ID}</div></td>
-      <td>${escapeHTML(nombreReceta(p.IDReceta))}</td>
-      <td class="num">${money(costo)}</td>
-      <td class="num">${money(precio)}</td>
-      <td class="num ${clase}">${money(utilidad)}</td>
-      <td class="num ${clase}">${precio > 0 ? pct(margen) : '—'}</td>
-      <td class="num">${precio > 0 ? pct(foodCost) : '—'}</td>
-      <td class="acciones">
-        <button class="icon-btn" data-accion="editarProd" data-id="${p.ID}" title="Editar">✎</button>
-        <button class="icon-btn" data-accion="eliminarProd" data-id="${p.ID}" title="Eliminar">🗑</button>
-      </td>
-    </tr>
-  `;
-}
-
-function wireProductos() {
-  const btnNuevo = document.getElementById('btnNuevoProd');
-  if (!btnNuevo.disabled) btnNuevo.addEventListener('click', () => abrirFormProducto());
-  const buscar = document.getElementById('buscarProd');
-  buscar.addEventListener('input', () => {
-    state.filtroProd = buscar.value;
-    renderVista();
-    setTimeout(() => { const b = document.getElementById('buscarProd'); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } }, 0);
-  });
-  document.querySelectorAll('[data-accion="editarProd"]').forEach(b => b.addEventListener('click', () => abrirFormProducto(b.dataset.id)));
-  document.querySelectorAll('[data-accion="eliminarProd"]').forEach(b => b.addEventListener('click', () => eliminarProducto(b.dataset.id)));
-}
-
-function abrirFormProducto(id) {
-  const prod = id ? state.data.productos.find(p => p.ID === id) : null;
-  const recetas = [...state.data.recetas].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-  const cuerpo = `
-    <form id="formProducto" class="formulario">
-      <label>Nombre del producto<input type="text" name="nombreProducto" required value="${prod ? escapeHTML(prod.NombreProducto) : ''}" placeholder="Ej. Panceta con salsa de maracuyá (porción)"></label>
-      <label>Receta asociada
-        <select name="idReceta" required id="selectRecetaProd">
-          <option value="">Elige una receta…</option>
-          ${recetas.map(r => `<option value="${r.ID}" ${prod && prod.IDReceta === r.ID ? 'selected' : ''}>${escapeHTML(r.Nombre)} — ${money(costoTotalReceta(r.ID))}</option>`).join('')}
-        </select>
-      </label>
-      <label>Precio de venta<input type="number" step="any" min="0" name="precioVenta" required value="${prod ? prod.PrecioVenta : ''}" id="inputPrecioProd"></label>
-      <div class="preview-rentabilidad" id="previewRentabilidad"></div>
-      <label>Notas<input type="text" name="notas" value="${prod ? escapeHTML(prod.Notas || '') : ''}"></label>
-      <div class="acciones-form">
-        <button type="button" class="btn btn-fantasma" id="btnCancelarForm">Cancelar</button>
-        <button type="submit" class="btn btn-dorado">${prod ? 'Guardar cambios' : 'Crear producto'}</button>
-      </div>
-    </form>
-  `;
-  abrirModal(prod ? 'Editar producto' : 'Nuevo producto', cuerpo);
-
-  const actualizarPreview = () => {
-    const idReceta = document.getElementById('selectRecetaProd').value;
-    const precio = Number(document.getElementById('inputPrecioProd').value) || 0;
-    const preview = document.getElementById('previewRentabilidad');
-    if (!idReceta || precio <= 0) { preview.innerHTML = ''; return; }
-    const costo = costoTotalReceta(idReceta);
-    const utilidad = precio - costo;
-    const margen = utilidad / precio;
-    const clase = margen < 0 ? 'rojo' : margen < 0.3 ? 'ambar' : 'verde';
-    preview.innerHTML = `<div class="mini-kpis">
-      <div><span class="muted-chico">Costo</span><span class="num">${money(costo)}</span></div>
-      <div><span class="muted-chico">Utilidad</span><span class="num ${clase}">${money(utilidad)}</span></div>
-      <div><span class="muted-chico">Margen</span><span class="num ${clase}">${pct(margen)}</span></div>
-    </div>`;
-  };
-  document.getElementById('selectRecetaProd').addEventListener('change', actualizarPreview);
-  document.getElementById('inputPrecioProd').addEventListener('input', actualizarPreview);
-  actualizarPreview();
-
-  document.getElementById('btnCancelarForm').addEventListener('click', cerrarModal);
-  document.getElementById('formProducto').addEventListener('submit', async e => {
-    e.preventDefault();
-    const datos = Object.fromEntries(new FormData(e.target).entries());
-    datos.id = id;
-    try {
-      await apiPost(id ? 'updateProducto' : 'addProducto', datos);
-      cerrarModal();
-      mostrarToast(id ? 'Producto actualizado.' : 'Producto creado.', 'ok');
-      renderVista();
-    } catch (err) { mostrarToast(err.message, 'error'); }
-  });
-}
-
-async function eliminarProducto(id) {
-  const prod = state.data.productos.find(p => p.ID === id);
-  if (!confirm(`¿Eliminar "${prod ? prod.NombreProducto : id}"?`)) return;
-  try {
-    await apiPost('deleteProducto', { id });
-    mostrarToast('Producto eliminado.', 'ok');
-    renderVista();
-  } catch (err) { mostrarToast(err.message, 'error'); }
-}
-
-// ---------------------------------------------------------------------------
-// VISTA: HISTÓRICO
-// ---------------------------------------------------------------------------
-
-function vistaHistorico() {
-  const lista = state.data.historico;
-  return `
-    <div class="encabezado-vista">
-      <div><h1>Histórico de precios</h1><p class="subtitulo">Cada vez que actualizas el valor de una factura, queda un registro aquí.</p></div>
-    </div>
-    ${lista.length ? `
-    <div class="tabla-wrap"><table class="tabla">
-      <thead><tr><th>Fecha</th><th>Ingrediente</th><th class="num">Antes</th><th class="num">Después</th><th class="num">Variación</th></tr></thead>
-      <tbody>
-        ${lista.map(h => {
-          const antes = Number(h.ValorAnterior) || 0;
-          const despues = Number(h.ValorNuevo) || 0;
-          const variacion = antes > 0 ? (despues - antes) / antes : null;
-          const clase = variacion === null ? '' : variacion > 0 ? 'rojo' : variacion < 0 ? 'verde' : '';
-          return `<tr>
-            <td class="muted">${fecha(h.Fecha)}</td>
-            <td>${escapeHTML(h.Nombre)}</td>
-            <td class="num">${moneyFino(antes)}</td>
-            <td class="num">${moneyFino(despues)}</td>
-            <td class="num ${clase}">${variacion === null ? '—' : (variacion > 0 ? '+' : '') + pct(variacion)}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table></div>` : estadoVacio('Sin cambios todavía.', 'Cuando actualices el valor pagado por un ingrediente, el cambio quedará registrado aquí.')}
-  `;
-}
-
-// ---------------------------------------------------------------------------
-// MODAL Y TOASTS
-// ---------------------------------------------------------------------------
-
-function abrirModal(titulo, cuerpoHTML) {
-  document.getElementById('modalTitulo').textContent = titulo;
-  document.getElementById('modalCuerpo').innerHTML = cuerpoHTML;
-  document.getElementById('modalOverlay').classList.remove('oculto');
-}
-function cerrarModal() {
-  document.getElementById('modalOverlay').classList.add('oculto');
-  document.getElementById('modalCuerpo').innerHTML = '';
-}
-function mostrarToast(msg, tipo) {
-  const cont = document.getElementById('toasts');
-  const el = document.createElement('div');
-  el.className = 'toast toast-' + (tipo || 'info');
-  el.textContent = msg;
-  cont.appendChild(el);
-  setTimeout(() => { el.classList.add('salir'); setTimeout(() => el.remove(), 300); }, 3200);
-}
-function mostrarError(msg) {
-  mostrarToast(msg, 'error');
-  document.getElementById('vista').innerHTML = `<div class="estado-vacio">
-    <h3>No se pudo conectar</h3>
-    <p>${escapeHTML(msg)}</p>
-    <button class="btn btn-dorado" onclick="cargarDatos(true)">Reintentar</button>
-  </div>`;
-}
+// ===== EVENTOS =====
+document.querySelector('nav').onclick = e => { const b = e.target.closest('button'); if (b) { S.tab = b.dataset.t; render(); } };
+document.addEventListener('click', e => {
+  if (e.target.id === 'm' || e.target.closest('[data-x]')) return close();
+  const add = e.target.closest('[data-add]'); if (add) return $('#ings').insertAdjacentHTML('beforeend', irow({}));
+  const rm = e.target.closest('[data-rm]'); if (rm) { if (document.querySelectorAll('.ir').length > 1) rm.parentElement.remove(); return; }
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const {a, id} = b.dataset, rec = S.tab === 'Recetas';
+  if (a === 'retry') load();
+  if (a === 'new') rec ? recForm() : form(S.tab);
+  if (a === 'edit') rec ? recForm(id) : form(S.tab, id);
+  if (a === 'del' && confirm('¿Eliminar este registro? No se puede deshacer.')) del(S.tab, id);
+  if (a === 'adv') avanzar(id);
+  if (a === 'pdf') pdf(id);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+load();
 </script>
 </body>
 </html>
